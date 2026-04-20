@@ -3,6 +3,7 @@ import type {
   AuthRequest,
 } from "@cloudflare/workers-oauth-provider";
 import type { SessionProps } from "./session";
+import { encryptCookie, decryptCookie } from "./cookie-crypto";
 
 const GOOGLE_AUTHORIZE = "https://accounts.google.com/o/oauth2/v2/auth";
 const GOOGLE_TOKEN = "https://oauth2.googleapis.com/token";
@@ -13,6 +14,7 @@ export interface GoogleEnv {
   GOOGLE_OAUTH_CLIENT_ID: string;
   GOOGLE_OAUTH_CLIENT_SECRET: string;
   GOOGLE_HOSTED_DOMAIN: string;
+  COOKIE_ENCRYPTION_KEY: string;
   OAUTH_PROVIDER: OAuthHelpers;
 }
 
@@ -28,9 +30,22 @@ export async function handleOAuthRequest(request: Request, env: GoogleEnv): Prom
 
 async function startAuthorize(request: Request, env: GoogleEnv): Promise<Response> {
   const oauthReq = await env.OAUTH_PROVIDER.parseAuthRequest(request);
-  const redirectUri = new URL("/callback", request.url).toString();
+
+  // H2: only allow HTTPS origins to prevent open-redirect via Host spoofing
+  const origin = new URL(request.url).origin;
+  if (!origin.startsWith("https://")) {
+    return new Response("HTTPS required", { status: 400 });
+  }
+  const redirectUri = `${origin}/callback`;
 
   const state = crypto.randomUUID();
+
+  // C1: encrypt cookie payload instead of plain Base64
+  const cookiePayload = await encryptCookie(
+    JSON.stringify({ state, oauthReq }),
+    env.COOKIE_ENCRYPTION_KEY,
+  );
+
   const googleUrl = new URL(GOOGLE_AUTHORIZE);
   googleUrl.searchParams.set("client_id", env.GOOGLE_OAUTH_CLIENT_ID);
   googleUrl.searchParams.set("redirect_uri", redirectUri);
@@ -45,7 +60,7 @@ async function startAuthorize(request: Request, env: GoogleEnv): Promise<Respons
     status: 302,
     headers: {
       location: googleUrl.toString(),
-      "set-cookie": cookie(OAUTH_REQ_COOKIE, btoa(JSON.stringify({ state, oauthReq }))),
+      "set-cookie": cookie(OAUTH_REQ_COOKIE, cookiePayload),
     },
   });
 }
@@ -58,15 +73,26 @@ async function handleCallback(request: Request, env: GoogleEnv): Promise<Respons
 
   const stored = readCookie(request, OAUTH_REQ_COOKIE);
   if (!stored) return new Response("OAuth state missing; please retry.", { status: 400 });
+
+  // C1: decrypt cookie
+  const decrypted = await decryptCookie(stored, env.COOKIE_ENCRYPTION_KEY);
+  if (!decrypted) return new Response("OAuth state corrupted.", { status: 400 });
+
   let parsed: { state: string; oauthReq: AuthRequest };
   try {
-    parsed = JSON.parse(atob(stored));
+    parsed = JSON.parse(decrypted);
   } catch {
     return new Response("OAuth state corrupted.", { status: 400 });
   }
   if (parsed.state !== state) return new Response("State mismatch.", { status: 400 });
 
-  const redirectUri = new URL("/callback", request.url).toString();
+  // H2: same HTTPS-only redirect URI construction as in startAuthorize
+  const origin = new URL(request.url).origin;
+  if (!origin.startsWith("https://")) {
+    return new Response("HTTPS required", { status: 400 });
+  }
+  const redirectUri = `${origin}/callback`;
+
   const tokenRes = await fetch(GOOGLE_TOKEN, {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
@@ -79,14 +105,16 @@ async function handleCallback(request: Request, env: GoogleEnv): Promise<Respons
     }),
   });
   if (!tokenRes.ok) {
-    return new Response(`Google token exchange failed: ${await tokenRes.text()}`, { status: 502 });
+    // C2: log full error server-side, return generic message to client
+    console.error("Google token exchange failed:", tokenRes.status, await tokenRes.text());
+    return new Response("Authentication failed. Please retry.", { status: 502 });
   }
   const { access_token } = (await tokenRes.json()) as { access_token: string };
 
   const uiRes = await fetch(GOOGLE_USERINFO, {
     headers: { authorization: `Bearer ${access_token}` },
   });
-  if (!uiRes.ok) return new Response("userinfo failed", { status: 502 });
+  if (!uiRes.ok) return new Response("Authentication failed. Please retry.", { status: 502 });
   const info = (await uiRes.json()) as {
     sub: string;
     email?: string;
@@ -101,8 +129,9 @@ async function handleCallback(request: Request, env: GoogleEnv): Promise<Respons
     info.hd !== env.GOOGLE_HOSTED_DOMAIN ||
     !info.email.toLowerCase().endsWith(`@${env.GOOGLE_HOSTED_DOMAIN.toLowerCase()}`)
   ) {
+    // H1: generic message — don't confirm which email was attempted
     return new Response(
-      `Access restricted to @${env.GOOGLE_HOSTED_DOMAIN} accounts (got: ${info.email ?? "none"}).`,
+      `Access restricted to @${env.GOOGLE_HOSTED_DOMAIN} accounts.`,
       { status: 403 },
     );
   }
@@ -131,7 +160,7 @@ async function handleCallback(request: Request, env: GoogleEnv): Promise<Respons
 }
 
 function cookie(name: string, value: string): string {
-  return `${name}=${value}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=600`;
+  return `${name}=${value}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=1800`;
 }
 
 function clearCookie(name: string): string {
