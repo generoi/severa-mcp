@@ -1,0 +1,6 @@
+SEVERA_CLIENT_ID="your-severa-client-id"
+SEVERA_CLIENT_SECRET="your-severa-client-secret"
+SEVERA_USER_EMAIL="you@genero.fi"
+GOOGLE_OAUTH_CLIENT_ID="xxx.apps.googleusercontent.com"
+GOOGLE_OAUTH_CLIENT_SECRET="GOCSPX-..."
+COOKIE_ENCRYPTION_KEY="32-byte random hex, e.g. `openssl rand -hex 32`"

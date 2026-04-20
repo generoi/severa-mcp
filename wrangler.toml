@@ -1,0 +1,91 @@
+name = "severa-mcp"
+main = "src/index.ts"
+compatibility_date = "2025-04-01"
+compatibility_flags = ["nodejs_compat"]
+account_id = "REPLACE_ME_CLOUDFLARE_ACCOUNT_ID"
+
+# KV namespaces
+#   OAUTH_KV   - Workers OAuth Provider stores authorization/refresh tokens + client registrations
+#   CACHE_KV   - Severa bearer token, email→userGuid map, reference data cache, rate-limit buckets
+#
+# Create namespaces with:
+#   npx wrangler kv namespace create OAUTH_KV
+#   npx wrangler kv namespace create CACHE_KV
+# Then paste the returned IDs below.
+
+kv_namespaces = [
+  { binding = "OAUTH_KV", id = "REPLACE_ME_OAUTH_KV_ID" },
+  { binding = "CACHE_KV", id = "REPLACE_ME_CACHE_KV_ID" },
+]
+
+[durable_objects]
+bindings = [
+  { name = "MCP_OBJECT", class_name = "SeveraMcpAgent" },
+]
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["SeveraMcpAgent"]
+
+[vars]
+SEVERA_ENV = "prod"
+SEVERA_API_BASE_STAG = "https://api.severa.stag.visma.com/rest-api"
+SEVERA_API_BASE_PROD = "https://api.severa.visma.com/rest-api"
+GOOGLE_HOSTED_DOMAIN = "genero.fi"
+ENABLE_WRITE_TOOLS = "false"
+SEVERA_EMAIL_MAP = '{}'
+
+[env.staging]
+name = "severa-mcp-staging"
+kv_namespaces = [
+  { binding = "OAUTH_KV", id = "f111cd4715f340d7aacc6508ec703304" },
+  { binding = "CACHE_KV", id = "1156e1bd892c4ccfb6ecd1152198a07a" },
+]
+
+[env.staging.durable_objects]
+bindings = [
+  { name = "MCP_OBJECT", class_name = "SeveraMcpAgent" },
+]
+
+[[env.staging.migrations]]
+tag = "v1"
+new_sqlite_classes = ["SeveraMcpAgent"]
+
+[env.staging.vars]
+SEVERA_ENV = "prod"
+SEVERA_API_BASE_STAG = "https://api.severa.stag.visma.com/rest-api"
+SEVERA_API_BASE_PROD = "https://api.severa.visma.com/rest-api"
+GOOGLE_HOSTED_DOMAIN = "genero.fi"
+ENABLE_WRITE_TOOLS = "false"
+SEVERA_EMAIL_MAP = '{}'
+
+[env.production]
+name = "severa-mcp"
+kv_namespaces = [
+  { binding = "OAUTH_KV", id = "REPLACE_ME_PROD_OAUTH_KV_ID" },
+  { binding = "CACHE_KV", id = "REPLACE_ME_PROD_CACHE_KV_ID" },
+]
+
+[env.production.durable_objects]
+bindings = [
+  { name = "MCP_OBJECT", class_name = "SeveraMcpAgent" },
+]
+
+[[env.production.migrations]]
+tag = "v1"
+new_sqlite_classes = ["SeveraMcpAgent"]
+
+[env.production.vars]
+SEVERA_ENV = "prod"
+SEVERA_API_BASE_STAG = "https://api.severa.stag.visma.com/rest-api"
+SEVERA_API_BASE_PROD = "https://api.severa.visma.com/rest-api"
+GOOGLE_HOSTED_DOMAIN = "genero.fi"
+ENABLE_WRITE_TOOLS = "false"
+SEVERA_EMAIL_MAP = '{}'
+
+# Secrets (set via `wrangler secret put ... --env staging|production`):
+#   SEVERA_CLIENT_ID
+#   SEVERA_CLIENT_SECRET
+#   GOOGLE_OAUTH_CLIENT_ID
+#   GOOGLE_OAUTH_CLIENT_SECRET
+#   COOKIE_ENCRYPTION_KEY
