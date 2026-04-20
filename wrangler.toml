@@ -62,8 +62,8 @@ SEVERA_EMAIL_MAP = '{}'
 [env.production]
 name = "severa-mcp"
 kv_namespaces = [
-  { binding = "OAUTH_KV", id = "REPLACE_ME_PROD_OAUTH_KV_ID" },
-  { binding = "CACHE_KV", id = "REPLACE_ME_PROD_CACHE_KV_ID" },
+  { binding = "OAUTH_KV", id = "d0ae1564e4134f93b8ba874fb3c45c99" },
+  { binding = "CACHE_KV", id = "e04957c6ad1b4700abef87625ea548ab" },
 ]
 
 [env.production.durable_objects]
