@@ -16,6 +16,9 @@ import { registerPhaseTools } from "./tools/phases";
 import { registerResourceAllocationTools } from "./tools/resource-allocations";
 import { registerFeeTools } from "./tools/fees";
 import { registerTravelTools } from "./tools/travels";
+import { registerOvertimeTools } from "./tools/overtimes";
+import { registerHolidayTools } from "./tools/holidays";
+import { registerRoleTools } from "./tools/roles";
 import { registerQueryTools } from "./tools/query";
 import { registerResources } from "./resources";
 
@@ -38,6 +41,9 @@ export class SeveraMcpAgent extends McpAgent<Env, Record<string, never>, Session
     registerResourceAllocationTools(this.server, this.env);
     registerFeeTools(this.server, this.env);
     registerTravelTools(this.server, this.env);
+    registerOvertimeTools(this.server, this.env);
+    registerHolidayTools(this.server, this.env);
+    registerRoleTools(this.server, this.env);
     registerQueryTools(this.server, this.env);
     registerResources(this.server, this.env, this.props);
   }

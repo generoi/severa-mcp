@@ -313,6 +313,33 @@ export interface PhaseOutputModel {
   isClosed?: boolean;
 }
 
+export interface OvertimeOutputModel {
+  guid: Guid;
+  name?: string;
+  code?: string;
+  percentage?: number;
+  isActive?: boolean;
+  includeInFlextime?: boolean;
+  multipliesUnitCost?: boolean;
+}
+
+export interface HolidayOutputModel {
+  guid: Guid;
+  name?: string;
+  date?: string;
+  countryGuid?: string;
+  isActive?: boolean;
+  isRecurringYearly?: boolean;
+  recurringEndYear?: number;
+  isPublicHoliday?: boolean;
+}
+
+export interface RoleOutputModel {
+  guid: Guid;
+  name?: string;
+  isActive?: boolean;
+}
+
 export interface OAuthTokenResponse {
   access_token: string;
   refresh_token?: string;

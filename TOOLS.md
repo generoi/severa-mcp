@@ -27,6 +27,7 @@ High-value **aggregation** tools (weighted pipeline totals, forecast gap analysi
 | Fees | `severa_list_project_fees` |
 | Travels | `severa_list_project_travel_expenses`, `severa_list_travel_reimbursements` |
 | Billing forecast | `severa_get_billing_forecast`, `severa_projects_missing_billing_forecast`, `severa_cases_missing_billing_forecast` |
+| Reference data | `severa_list_overtimes`, `severa_list_holidays`, `severa_list_roles` |
 | Generic | `severa_query` |
 
 ## MCP resources
