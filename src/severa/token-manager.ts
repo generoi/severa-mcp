@@ -1,8 +1,20 @@
 import type { OAuthTokenResponse } from "./types";
 
-const KV_KEY = "severa:token";
 const EXPIRY_BUFFER_SECONDS = 300;
 const TOKEN_PATH = "/v1/token";
+
+async function kvKey(env: TokenManagerEnv): Promise<string> {
+  const scopes = requestedScopes(env);
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(scopes));
+  const hex = Array.from(new Uint8Array(buf).slice(0, 4))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+  return `severa:token:${hex}`;
+}
+
+export async function clearStoredToken(env: TokenManagerEnv): Promise<void> {
+  await env.CACHE_KV.delete(await kvKey(env));
+}
 
 export interface StoredToken {
   accessToken: string;
@@ -45,7 +57,8 @@ export function requestedScopes(env: TokenManagerEnv): string {
 let inFlight: Promise<string> | null = null;
 
 export async function getAccessToken(env: TokenManagerEnv): Promise<string> {
-  const cached = await readStored(env.CACHE_KV);
+  const key = await kvKey(env);
+  const cached = await readStored(env.CACHE_KV, key);
   if (cached && cached.expiresAt - EXPIRY_BUFFER_SECONDS > nowSeconds()) {
     return cached.accessToken;
   }
@@ -55,7 +68,7 @@ export async function getAccessToken(env: TokenManagerEnv): Promise<string> {
       const fresh = cached?.refreshToken
         ? await refreshToken(env, cached.refreshToken).catch(() => issueToken(env))
         : await issueToken(env);
-      await writeStored(env.CACHE_KV, fresh);
+      await writeStored(env.CACHE_KV, key, fresh);
       return fresh.accessToken;
     } finally {
       inFlight = null;
@@ -104,12 +117,16 @@ function toStored(body: OAuthTokenResponse): StoredToken {
   };
 }
 
-async function readStored(kv: KVNamespace): Promise<StoredToken | null> {
-  return (await kv.get(KV_KEY, "json")) as StoredToken | null;
+async function readStored(kv: KVNamespace, key: string): Promise<StoredToken | null> {
+  return (await kv.get(key, "json")) as StoredToken | null;
 }
 
-async function writeStored(kv: KVNamespace, token: StoredToken): Promise<void> {
-  await kv.put(KV_KEY, JSON.stringify(token), {
+async function writeStored(
+  kv: KVNamespace,
+  key: string,
+  token: StoredToken,
+): Promise<void> {
+  await kv.put(key, JSON.stringify(token), {
     expirationTtl: Math.max(60, token.expiresAt - nowSeconds() + 60),
   });
 }

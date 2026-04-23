@@ -1,4 +1,9 @@
-import { getAccessToken, severaBaseUrl, type TokenManagerEnv } from "./token-manager";
+import {
+  clearStoredToken,
+  getAccessToken,
+  severaBaseUrl,
+  type TokenManagerEnv,
+} from "./token-manager";
 import { acquireRateLimit } from "./rate-limit";
 import type { SeveraError } from "./types";
 
@@ -59,7 +64,7 @@ export async function severaFetchRaw<T>(
     }
 
     if (res.status === 401 && attempt === 0) {
-      await env.CACHE_KV.delete("severa:token");
+      await clearStoredToken(env);
       continue;
     }
 
