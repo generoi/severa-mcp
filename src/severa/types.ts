@@ -94,6 +94,129 @@ export interface ProjectForecastOutputModel {
   laborExpenseForecastNotes?: string | null;
 }
 
+export interface InvoiceStatusSubModel {
+  guid: Guid;
+  name?: string;
+}
+
+export interface InvoiceOutputModel {
+  guid: Guid;
+  number?: string | number;
+  referenceNumber?: string;
+  date?: string;
+  dueDate?: string;
+  paymentDate?: string | null;
+  invoiceStatus?: InvoiceStatusSubModel;
+  customer?: { guid: Guid; name: string };
+  project?: { guid: Guid; name: string };
+  salesPerson?: UserWithName;
+  projectOwner?: UserWithName;
+  totalExcludingTax?: Money;
+  totalIncludingTax?: Money;
+  createdDateTime?: string;
+  lastUpdatedDateTime?: string;
+  createdBy?: UserWithName;
+}
+
+export interface InvoiceRowOutputModel {
+  guid: Guid;
+  invoice?: { guid: Guid; number?: string | number };
+  description?: string;
+  quantity?: number;
+  unit?: string;
+  unitPrice?: Money;
+  totalPrice?: Money;
+  workType?: { guid: Guid; name: string };
+  product?: { guid: Guid; name: string };
+  phase?: PhaseSubModel;
+}
+
+export interface ProposalOutputModel {
+  guid: Guid;
+  name?: string;
+  number?: string | number;
+  customer?: { guid: Guid; name: string };
+  project?: { guid: Guid; name: string };
+  proposalStatus?: { guid: Guid; name?: string };
+  salesPerson?: UserWithName;
+  expectedValue?: Money;
+  probability?: number;
+  expectedOrderDate?: string;
+  createdDateTime?: string;
+  lastUpdatedDateTime?: string;
+}
+
+export interface ActivityModel {
+  guid: Guid;
+  name?: string;
+  description?: string;
+  isClosed?: boolean;
+  isApproved?: boolean;
+  activityType?: { guid: Guid; name?: string };
+  activityCategory?: string;
+  customer?: { guid: Guid; name: string };
+  project?: { guid: Guid; name: string };
+  phase?: PhaseSubModel;
+  user?: UserWithName;
+  startDateTime?: string;
+  endDateTime?: string;
+  durationInMinutes?: number;
+  workHours?: number;
+}
+
+export interface UserOutputModel extends UserWithName {
+  code?: string;
+  businessUnit?: { guid: Guid; name?: string };
+  supervisorUser?: UserWithName;
+  keywords?: { guid?: Guid; value?: string; name?: string }[];
+  title?: string;
+  purpose?: string;
+  createdDateTime?: string;
+  lastUpdatedDateTime?: string;
+}
+
+export interface ContactModel {
+  guid: Guid;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  mobilePhone?: string;
+  title?: string;
+  customer?: { guid: Guid; name: string };
+  isActive?: boolean;
+  isDeleted?: boolean;
+  role?: { guid: Guid; name?: string };
+  lastUpdatedDateTime?: string;
+}
+
+export interface ProductOutputModel {
+  guid: Guid;
+  name?: string;
+  code?: string;
+  type?: string;
+  isActive?: boolean;
+  description?: string;
+  category?: { guid: Guid; name?: string };
+  unit?: string;
+  unitPrice?: Money;
+  createdDateTime?: string;
+  lastUpdatedDateTime?: string;
+}
+
+export interface PhaseOutputModel {
+  guid: Guid;
+  name?: string;
+  code?: string;
+  description?: string;
+  project?: { guid: Guid; name: string };
+  parentPhase?: { guid: Guid; name?: string };
+  phaseStatus?: { guid: Guid; name?: string; isClosed?: boolean };
+  startDate?: string;
+  deadline?: string;
+  isClosed?: boolean;
+}
+
 export interface OAuthTokenResponse {
   access_token: string;
   refresh_token?: string;

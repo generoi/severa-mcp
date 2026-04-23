@@ -9,6 +9,7 @@ import { registerLookupTools } from "../src/mcp/tools/lookup";
 import { registerCaseTools } from "../src/mcp/tools/cases";
 import { registerBillingForecastTools } from "../src/mcp/tools/billing-forecast";
 import { registerHoursTools } from "../src/mcp/tools/hours";
+import { registerInvoiceTools } from "../src/mcp/tools/invoices";
 import { registerQueryTools } from "../src/mcp/tools/query";
 
 const registerAll = [
@@ -17,6 +18,7 @@ const registerAll = [
   registerBillingForecastTools,
   (s: Parameters<typeof registerHoursTools>[0], e: Parameters<typeof registerHoursTools>[1], p: Parameters<typeof registerHoursTools>[2]) =>
     registerHoursTools(s, e, p, { enableWrites: false }),
+  registerInvoiceTools,
   registerQueryTools,
 ];
 
@@ -32,6 +34,8 @@ const EXPECTED_TOOLS = [
   "severa_get_project",
   "severa_get_unbilled_hours",
   "severa_list_customers",
+  "severa_list_invoice_rows",
+  "severa_list_invoices",
   "severa_list_projects",
   "severa_list_sales_cases",
   "severa_pipeline_summary",
@@ -68,9 +72,12 @@ describe("MCP tool registry (read-only surface)", () => {
 describe("MCP tool registry (writes enabled)", () => {
   it("adds severa_log_hours when ENABLE_WRITE_TOOLS=true", async () => {
     const withWrites = [
-      ...registerAll.slice(0, -2),
+      registerLookupTools,
+      registerCaseTools,
+      registerBillingForecastTools,
       (s: Parameters<typeof registerHoursTools>[0], e: Parameters<typeof registerHoursTools>[1], p: Parameters<typeof registerHoursTools>[2]) =>
         registerHoursTools(s, e, p, { enableWrites: true }),
+      registerInvoiceTools,
       registerQueryTools,
     ];
     const tools = await listTools(withWrites);

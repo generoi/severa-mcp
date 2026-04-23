@@ -10,6 +10,7 @@ import { registerLookupTools } from "./mcp/tools/lookup.js";
 import { registerHoursTools } from "./mcp/tools/hours.js";
 import { registerCaseTools } from "./mcp/tools/cases.js";
 import { registerBillingForecastTools } from "./mcp/tools/billing-forecast.js";
+import { registerInvoiceTools } from "./mcp/tools/invoices.js";
 import { registerQueryTools } from "./mcp/tools/query.js";
 import type { Env } from "./env.js";
 import type { SessionProps } from "./auth/session.js";
@@ -98,6 +99,7 @@ registerLookupTools(server, env, props);
 registerCaseTools(server, env, props);
 registerBillingForecastTools(server, env);
 registerHoursTools(server, env, props, { enableWrites: env.ENABLE_WRITE_TOOLS === "true" });
+registerInvoiceTools(server, env);
 registerQueryTools(server, env);
 
 const transport = new StdioServerTransport();
