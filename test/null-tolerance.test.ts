@@ -21,6 +21,9 @@ import { registerTravelTools } from "../src/mcp/tools/travels";
 import { registerOvertimeTools } from "../src/mcp/tools/overtimes";
 import { registerHolidayTools } from "../src/mcp/tools/holidays";
 import { registerRoleTools } from "../src/mcp/tools/roles";
+import { registerPhaseMemberTools } from "../src/mcp/tools/phase-members";
+import { registerRootPhaseTools } from "../src/mcp/tools/root-phases";
+import { registerContactCommunicationTools } from "../src/mcp/tools/contact-communications";
 import { registerQueryTools } from "../src/mcp/tools/query";
 
 const registerAll = [
@@ -42,6 +45,9 @@ const registerAll = [
   registerOvertimeTools,
   registerHolidayTools,
   registerRoleTools,
+  registerPhaseMemberTools,
+  registerRootPhaseTools,
+  registerContactCommunicationTools,
   registerQueryTools,
 ];
 
@@ -93,6 +99,9 @@ describe("Every tool's optional fields accept null (LLM-friendliness)", () => {
           "/v1/holidays",
           "/v1/holidaysbytimeperiod",
           "/v1/roles",
+          "/v1/phasemembers",
+          "/v1/rootphaseswithhierarchy",
+          "/v1/contactcommunications",
         ].map((path) => ({ path, response: [] as unknown[] })),
       ],
     });

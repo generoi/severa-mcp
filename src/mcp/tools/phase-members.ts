@@ -1,0 +1,81 @@
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
+import { severaPaginate } from "../../severa/client";
+import type { PhaseMemberOutputModel } from "../../severa/types";
+import type { Env } from "../../env";
+import { toText } from "../format";
+
+const READ_ANNOTATIONS = {
+  readOnlyHint: true,
+  destructiveHint: false,
+  idempotentHint: true,
+  openWorldHint: true,
+};
+
+const isoDate = () => z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+
+export function registerPhaseMemberTools(server: McpServer, env: Env) {
+  server.registerTool(
+    "severa_list_phase_members",
+    {
+      description: [
+        "List phase-member assignments from `/v1/phasemembers` — which users are staffed on which phases. Answers 'who's on this project?' and 'what phases is X working on?'.",
+        "",
+        "Server-side filters:",
+        "- `isUserActive` — filter out assignments for deactivated users",
+        "- `changedSince` — YYYY-MM-DD",
+        "",
+        "Client-side filters:",
+        "- `userGuid` — scope to one user",
+        "- `phaseGuid` — scope to one phase (discover via `severa_list_phases`)",
+        "",
+        "`limit` default 100, max 500.",
+      ].join("\n"),
+      inputSchema: {
+        isUserActive: z.boolean().nullish(),
+        changedSince: isoDate().nullish(),
+        userGuid: z.string().uuid().nullish(),
+        phaseGuid: z.string().uuid().nullish(),
+        limit: z.number().int().min(1).max(500).nullish(),
+      },
+      annotations: { ...READ_ANNOTATIONS, title: "List phase members" },
+    },
+    async (args) => {
+      const limit = args.limit ?? 100;
+      const rows = await severaPaginate<PhaseMemberOutputModel>(env, "/v1/phasemembers", {
+        query: {
+          ...(args.isUserActive != null ? { isUserActive: args.isUserActive } : {}),
+          ...(args.changedSince ? { changedSince: `${args.changedSince}T00:00:00Z` } : {}),
+          rowCount: Math.min(1000, Math.max(limit, 100)),
+        },
+      });
+
+      const hits = rows
+        .filter((m) => {
+          if (args.userGuid && m.user?.guid !== args.userGuid) return false;
+          if (args.phaseGuid && m.phase?.guid !== args.phaseGuid) return false;
+          return true;
+        })
+        .slice(0, limit);
+
+      if (!hits.length) return toText("No phase members match those filters.");
+      return toText(
+        `${hits.length} member(s)${hits.length < rows.length ? ` (of ${rows.length} fetched)` : ""}:\n${hits.map(renderMemberRow).join("\n")}`,
+      );
+    },
+  );
+}
+
+function renderMemberRow(m: PhaseMemberOutputModel): string {
+  const who =
+    m.user?.name ||
+    [m.user?.firstName, m.user?.lastName].filter(Boolean).join(" ") ||
+    "(no user)";
+  const parts = [
+    `**${who}**`,
+    m.phase?.name,
+    m.currentWorkContractTitle,
+    m.isActive === false ? "(inactive)" : undefined,
+  ].filter(Boolean);
+  return `- ${parts.join(" — ")} — \`${m.guid}\``;
+}

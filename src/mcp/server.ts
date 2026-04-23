@@ -19,6 +19,9 @@ import { registerTravelTools } from "./tools/travels";
 import { registerOvertimeTools } from "./tools/overtimes";
 import { registerHolidayTools } from "./tools/holidays";
 import { registerRoleTools } from "./tools/roles";
+import { registerPhaseMemberTools } from "./tools/phase-members";
+import { registerRootPhaseTools } from "./tools/root-phases";
+import { registerContactCommunicationTools } from "./tools/contact-communications";
 import { registerQueryTools } from "./tools/query";
 import { registerResources } from "./resources";
 
@@ -44,6 +47,9 @@ export class SeveraMcpAgent extends McpAgent<Env, Record<string, never>, Session
     registerOvertimeTools(this.server, this.env);
     registerHolidayTools(this.server, this.env);
     registerRoleTools(this.server, this.env);
+    registerPhaseMemberTools(this.server, this.env);
+    registerRootPhaseTools(this.server, this.env);
+    registerContactCommunicationTools(this.server, this.env);
     registerQueryTools(this.server, this.env);
     registerResources(this.server, this.env, this.props);
   }

@@ -313,6 +313,26 @@ export interface PhaseOutputModel {
   isClosed?: boolean;
 }
 
+export interface ContactCommunicationModel {
+  guid: Guid;
+  value?: string;
+  isForbiddenToUse?: boolean;
+  contact?: { guid: Guid };
+  communicationType?: { guid: Guid; name?: string };
+  createdDateTime?: string;
+  lastUpdatedDateTime?: string;
+}
+
+export interface PhaseMemberOutputModel {
+  guid: Guid;
+  user?: { guid: Guid; firstName?: string; lastName?: string; name?: string };
+  phase?: { guid: Guid; name?: string };
+  isActive?: boolean;
+  currentWorkContractTitle?: string;
+  createdDateTime?: string;
+  lastUpdatedDateTime?: string;
+}
+
 export interface OvertimeOutputModel {
   guid: Guid;
   name?: string;

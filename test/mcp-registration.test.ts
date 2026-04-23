@@ -22,6 +22,9 @@ import { registerTravelTools } from "../src/mcp/tools/travels";
 import { registerOvertimeTools } from "../src/mcp/tools/overtimes";
 import { registerHolidayTools } from "../src/mcp/tools/holidays";
 import { registerRoleTools } from "../src/mcp/tools/roles";
+import { registerPhaseMemberTools } from "../src/mcp/tools/phase-members";
+import { registerRootPhaseTools } from "../src/mcp/tools/root-phases";
+import { registerContactCommunicationTools } from "../src/mcp/tools/contact-communications";
 import { registerQueryTools } from "../src/mcp/tools/query";
 
 const registerAll = [
@@ -43,6 +46,9 @@ const registerAll = [
   registerOvertimeTools,
   registerHolidayTools,
   registerRoleTools,
+  registerPhaseMemberTools,
+  registerRootPhaseTools,
+  registerContactCommunicationTools,
   registerQueryTools,
 ];
 
@@ -58,12 +64,14 @@ const EXPECTED_TOOLS = [
   "severa_get_project",
   "severa_get_unbilled_hours",
   "severa_list_activities",
+  "severa_list_contact_communications",
   "severa_list_contact_persons",
   "severa_list_customers",
   "severa_list_holidays",
   "severa_list_invoice_rows",
   "severa_list_invoices",
   "severa_list_overtimes",
+  "severa_list_phase_members",
   "severa_list_phases",
   "severa_list_products",
   "severa_list_project_fees",
@@ -73,6 +81,7 @@ const EXPECTED_TOOLS = [
   "severa_list_resource_allocations",
   "severa_list_role_allocations",
   "severa_list_roles",
+  "severa_list_root_phases",
   "severa_list_sales_cases",
   "severa_list_time_entries",
   "severa_list_travel_reimbursements",
@@ -131,6 +140,9 @@ describe("MCP tool registry (writes enabled)", () => {
       registerOvertimeTools,
       registerHolidayTools,
       registerRoleTools,
+      registerPhaseMemberTools,
+      registerRootPhaseTools,
+      registerContactCommunicationTools,
       registerQueryTools,
     ];
     const tools = await listTools(withWrites);
