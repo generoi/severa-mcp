@@ -1,0 +1,23 @@
+[
+  {
+    "guid": "90909090-9090-9090-9090-909090909091",
+    "firstName": "Sanna",
+    "lastName": "Sample",
+    "email": "sanna@acme.example",
+    "phone": "+358401234567",
+    "title": "Marketing Manager",
+    "customer": { "guid": "11111111-1111-1111-1111-111111111111", "name": "Acme Oy" },
+    "isActive": true,
+    "isDeleted": false
+  },
+  {
+    "guid": "90909090-9090-9090-9090-909090909092",
+    "firstName": "Ben",
+    "lastName": "Beta",
+    "email": "ben@beta.example",
+    "title": "CEO",
+    "customer": { "guid": "22222222-2222-2222-2222-222222222222", "name": "Beta Industries" },
+    "isActive": true,
+    "isDeleted": false
+  }
+]

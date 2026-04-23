@@ -1,0 +1,20 @@
+[
+  {
+    "guid": "70707070-7070-7070-7070-707070707071",
+    "name": "Growth audit",
+    "code": "GA-001",
+    "type": "Service",
+    "isActive": true,
+    "unitPrice": { "amount": 2500, "currencyCode": "EUR" },
+    "unit": "pcs"
+  },
+  {
+    "guid": "70707070-7070-7070-7070-707070707072",
+    "name": "Monthly retainer",
+    "code": "RET-MO",
+    "type": "Service",
+    "isActive": true,
+    "unitPrice": { "amount": 5000, "currencyCode": "EUR" },
+    "unit": "month"
+  }
+]

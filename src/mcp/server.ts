@@ -7,6 +7,12 @@ import { registerHoursTools } from "./tools/hours";
 import { registerCaseTools } from "./tools/cases";
 import { registerBillingForecastTools } from "./tools/billing-forecast";
 import { registerInvoiceTools } from "./tools/invoices";
+import { registerProposalTools } from "./tools/proposals";
+import { registerActivityTools } from "./tools/activities";
+import { registerUserTools } from "./tools/users";
+import { registerContactTools } from "./tools/contacts";
+import { registerProductTools } from "./tools/products";
+import { registerPhaseTools } from "./tools/phases";
 import { registerQueryTools } from "./tools/query";
 
 export class SeveraMcpAgent extends McpAgent<Env, Record<string, never>, SessionProps> {
@@ -19,6 +25,12 @@ export class SeveraMcpAgent extends McpAgent<Env, Record<string, never>, Session
     registerBillingForecastTools(this.server, this.env);
     registerHoursTools(this.server, this.env, this.props, { enableWrites });
     registerInvoiceTools(this.server, this.env);
+    registerProposalTools(this.server, this.env);
+    registerActivityTools(this.server, this.env, this.props);
+    registerUserTools(this.server, this.env);
+    registerContactTools(this.server, this.env);
+    registerProductTools(this.server, this.env);
+    registerPhaseTools(this.server, this.env);
     registerQueryTools(this.server, this.env);
   }
 }

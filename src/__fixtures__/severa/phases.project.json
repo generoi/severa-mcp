@@ -1,0 +1,22 @@
+[
+  {
+    "guid": "80808080-8080-8080-8080-808080808081",
+    "name": "Discovery",
+    "code": "P01-DISC",
+    "project": { "guid": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1", "name": "Acme - Website renewal" },
+    "phaseStatus": { "guid": "81818181-8181-8181-8181-818181818181", "name": "In progress", "isClosed": false },
+    "startDate": "2026-04-01",
+    "deadline": "2026-04-30",
+    "isClosed": false
+  },
+  {
+    "guid": "80808080-8080-8080-8080-808080808082",
+    "name": "Build",
+    "code": "P01-BUILD",
+    "project": { "guid": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1", "name": "Acme - Website renewal" },
+    "phaseStatus": { "guid": "81818181-8181-8181-8181-818181818181", "name": "In progress", "isClosed": false },
+    "startDate": "2026-05-01",
+    "deadline": "2026-06-30",
+    "isClosed": false
+  }
+]

@@ -10,6 +10,12 @@ import { registerCaseTools } from "../src/mcp/tools/cases";
 import { registerBillingForecastTools } from "../src/mcp/tools/billing-forecast";
 import { registerHoursTools } from "../src/mcp/tools/hours";
 import { registerInvoiceTools } from "../src/mcp/tools/invoices";
+import { registerProposalTools } from "../src/mcp/tools/proposals";
+import { registerActivityTools } from "../src/mcp/tools/activities";
+import { registerUserTools } from "../src/mcp/tools/users";
+import { registerContactTools } from "../src/mcp/tools/contacts";
+import { registerProductTools } from "../src/mcp/tools/products";
+import { registerPhaseTools } from "../src/mcp/tools/phases";
 import { registerQueryTools } from "../src/mcp/tools/query";
 
 const registerAll = [
@@ -19,6 +25,12 @@ const registerAll = [
   (s: Parameters<typeof registerHoursTools>[0], e: Parameters<typeof registerHoursTools>[1], p: Parameters<typeof registerHoursTools>[2]) =>
     registerHoursTools(s, e, p, { enableWrites: false }),
   registerInvoiceTools,
+  registerProposalTools,
+  registerActivityTools,
+  registerUserTools,
+  registerContactTools,
+  registerProductTools,
+  registerPhaseTools,
   registerQueryTools,
 ];
 
@@ -33,11 +45,17 @@ const EXPECTED_TOOLS = [
   "severa_get_my_hours",
   "severa_get_project",
   "severa_get_unbilled_hours",
+  "severa_list_activities",
+  "severa_list_contact_persons",
   "severa_list_customers",
   "severa_list_invoice_rows",
   "severa_list_invoices",
+  "severa_list_phases",
+  "severa_list_products",
   "severa_list_projects",
+  "severa_list_proposals",
   "severa_list_sales_cases",
+  "severa_list_users",
   "severa_pipeline_summary",
   "severa_projects_missing_billing_forecast",
   "severa_query",
@@ -78,6 +96,12 @@ describe("MCP tool registry (writes enabled)", () => {
       (s: Parameters<typeof registerHoursTools>[0], e: Parameters<typeof registerHoursTools>[1], p: Parameters<typeof registerHoursTools>[2]) =>
         registerHoursTools(s, e, p, { enableWrites: true }),
       registerInvoiceTools,
+      registerProposalTools,
+      registerActivityTools,
+      registerUserTools,
+      registerContactTools,
+      registerProductTools,
+      registerPhaseTools,
       registerQueryTools,
     ];
     const tools = await listTools(withWrites);

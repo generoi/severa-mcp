@@ -1,0 +1,24 @@
+[
+  {
+    "guid": "cccccccc-cccc-cccc-cccc-cccccccccccc",
+    "firstName": "Tiia",
+    "lastName": "Tester",
+    "userName": "tiia",
+    "email": "tiia@genero.fi",
+    "isActive": true,
+    "code": "T001",
+    "title": "Senior Developer",
+    "businessUnit": { "guid": "f1f1f1f1-f1f1-f1f1-f1f1-f1f1f1f1f1f1", "name": "Growth team" }
+  },
+  {
+    "guid": "cccccccc-cccc-cccc-cccc-cccccccccccd",
+    "firstName": "Sam",
+    "lastName": "Sample",
+    "userName": "sam",
+    "email": "sam@genero.fi",
+    "isActive": true,
+    "code": "S001",
+    "title": "Designer",
+    "businessUnit": { "guid": "f2f2f2f2-f2f2-f2f2-f2f2-f2f2f2f2f2f2", "name": "Design team" }
+  }
+]
