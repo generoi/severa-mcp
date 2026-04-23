@@ -30,6 +30,7 @@ High-value **aggregation** tools (weighted pipeline totals, forecast gap analysi
 | Reference data | `severa_list_overtimes`, `severa_list_holidays`, `severa_list_roles` |
 | Staffing | `severa_list_phase_members`, `severa_list_root_phases` |
 | Contact channels | `severa_list_contact_communications` |
+| Files (metadata only) | `severa_list_files` — content download deferred pending permission-model decision |
 | Generic | `severa_query` |
 
 ## MCP resources

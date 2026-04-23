@@ -22,6 +22,7 @@ import { registerRoleTools } from "./tools/roles";
 import { registerPhaseMemberTools } from "./tools/phase-members";
 import { registerRootPhaseTools } from "./tools/root-phases";
 import { registerContactCommunicationTools } from "./tools/contact-communications";
+import { registerFileTools } from "./tools/files";
 import { registerQueryTools } from "./tools/query";
 import { registerResources } from "./resources";
 
@@ -50,6 +51,7 @@ export class SeveraMcpAgent extends McpAgent<Env, Record<string, never>, Session
     registerPhaseMemberTools(this.server, this.env);
     registerRootPhaseTools(this.server, this.env);
     registerContactCommunicationTools(this.server, this.env);
+    registerFileTools(this.server, this.env);
     registerQueryTools(this.server, this.env);
     registerResources(this.server, this.env, this.props);
   }

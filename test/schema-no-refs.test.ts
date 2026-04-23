@@ -35,6 +35,7 @@ import { registerRoleTools } from "../src/mcp/tools/roles";
 import { registerPhaseMemberTools } from "../src/mcp/tools/phase-members";
 import { registerRootPhaseTools } from "../src/mcp/tools/root-phases";
 import { registerContactCommunicationTools } from "../src/mcp/tools/contact-communications";
+import { registerFileTools } from "../src/mcp/tools/files";
 import { registerQueryTools } from "../src/mcp/tools/query";
 
 const registerAll = [
@@ -59,6 +60,7 @@ const registerAll = [
   registerPhaseMemberTools,
   registerRootPhaseTools,
   registerContactCommunicationTools,
+  registerFileTools,
   registerQueryTools,
 ];
 

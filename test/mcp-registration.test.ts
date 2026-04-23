@@ -25,6 +25,7 @@ import { registerRoleTools } from "../src/mcp/tools/roles";
 import { registerPhaseMemberTools } from "../src/mcp/tools/phase-members";
 import { registerRootPhaseTools } from "../src/mcp/tools/root-phases";
 import { registerContactCommunicationTools } from "../src/mcp/tools/contact-communications";
+import { registerFileTools } from "../src/mcp/tools/files";
 import { registerQueryTools } from "../src/mcp/tools/query";
 
 const registerAll = [
@@ -49,6 +50,7 @@ const registerAll = [
   registerPhaseMemberTools,
   registerRootPhaseTools,
   registerContactCommunicationTools,
+  registerFileTools,
   registerQueryTools,
 ];
 
@@ -67,6 +69,7 @@ const EXPECTED_TOOLS = [
   "severa_list_contact_communications",
   "severa_list_contact_persons",
   "severa_list_customers",
+  "severa_list_files",
   "severa_list_holidays",
   "severa_list_invoice_rows",
   "severa_list_invoices",
@@ -143,6 +146,7 @@ describe("MCP tool registry (writes enabled)", () => {
       registerPhaseMemberTools,
       registerRootPhaseTools,
       registerContactCommunicationTools,
+      registerFileTools,
       registerQueryTools,
     ];
     const tools = await listTools(withWrites);

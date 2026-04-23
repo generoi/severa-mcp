@@ -313,6 +313,25 @@ export interface PhaseOutputModel {
   isClosed?: boolean;
 }
 
+export interface FileMetadataModel {
+  guid: Guid;
+  fileGuid?: Guid;
+  name?: string;
+  size?: number;
+  contentType?: string;
+  description?: string;
+  category?: { guid: Guid; name?: string };
+  isInternal?: boolean;
+  isReadOnly?: boolean;
+  createdDateTime?: string;
+  lastUpdatedDateTime?: string;
+  createdBy?: { guid: Guid; firstName?: string; lastName?: string; name?: string };
+  projectGuid?: Guid;
+  invoiceGuid?: Guid;
+  travelExpenseGuid?: Guid;
+  customer?: { guid: Guid; name?: string };
+}
+
 export interface ContactCommunicationModel {
   guid: Guid;
   value?: string;

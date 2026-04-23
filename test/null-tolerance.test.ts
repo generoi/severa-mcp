@@ -24,6 +24,7 @@ import { registerRoleTools } from "../src/mcp/tools/roles";
 import { registerPhaseMemberTools } from "../src/mcp/tools/phase-members";
 import { registerRootPhaseTools } from "../src/mcp/tools/root-phases";
 import { registerContactCommunicationTools } from "../src/mcp/tools/contact-communications";
+import { registerFileTools } from "../src/mcp/tools/files";
 import { registerQueryTools } from "../src/mcp/tools/query";
 
 const registerAll = [
@@ -48,6 +49,7 @@ const registerAll = [
   registerPhaseMemberTools,
   registerRootPhaseTools,
   registerContactCommunicationTools,
+  registerFileTools,
   registerQueryTools,
 ];
 
@@ -64,6 +66,10 @@ const REQUIRED_ARGS: Record<string, Record<string, unknown>> = {
   severa_find_customer: { text: "x" },
   severa_find_project: { text: "x" },
   severa_query: { path: "/v1/customers" },
+  severa_list_files: {
+    scope: "project",
+    parentGuid: "00000000-0000-0000-0000-000000000001",
+  },
 };
 
 describe("Every tool's optional fields accept null (LLM-friendliness)", () => {

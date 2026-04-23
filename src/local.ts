@@ -26,6 +26,7 @@ import { registerRoleTools } from "./mcp/tools/roles.js";
 import { registerPhaseMemberTools } from "./mcp/tools/phase-members.js";
 import { registerRootPhaseTools } from "./mcp/tools/root-phases.js";
 import { registerContactCommunicationTools } from "./mcp/tools/contact-communications.js";
+import { registerFileTools } from "./mcp/tools/files.js";
 import { registerQueryTools } from "./mcp/tools/query.js";
 import { registerResources } from "./mcp/resources/index.js";
 import type { Env } from "./env.js";
@@ -131,6 +132,7 @@ registerRoleTools(server, env);
 registerPhaseMemberTools(server, env);
 registerRootPhaseTools(server, env);
 registerContactCommunicationTools(server, env);
+registerFileTools(server, env);
 registerQueryTools(server, env);
 registerResources(server, env, props);
 
