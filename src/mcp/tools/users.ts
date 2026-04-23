@@ -39,17 +39,17 @@ export function registerUserTools(server: McpServer, env: Env) {
         "`limit` default 100, max 500.",
       ].join("\n"),
       inputSchema: {
-        isActive: z.boolean().optional(),
-        businessUnitGuids: z.array(uuid).optional(),
-        keywordGuids: z.array(uuid).optional(),
-        supervisorUserGuids: z.array(uuid).optional(),
-        code: z.string().optional(),
-        email: z.string().email().optional(),
-        purpose: z.string().optional(),
-        changedSince: isoDate.optional(),
-        nameContains: z.string().min(1).optional(),
-        emailContains: z.string().min(1).optional(),
-        limit: z.number().int().min(1).max(500).optional(),
+        isActive: z.boolean().nullish(),
+        businessUnitGuids: z.array(uuid).nullish(),
+        keywordGuids: z.array(uuid).nullish(),
+        supervisorUserGuids: z.array(uuid).nullish(),
+        code: z.string().nullish(),
+        email: z.string().email().nullish(),
+        purpose: z.string().nullish(),
+        changedSince: isoDate.nullish(),
+        nameContains: z.string().min(1).nullish(),
+        emailContains: z.string().min(1).nullish(),
+        limit: z.number().int().min(1).max(500).nullish(),
       },
       annotations: { ...READ_ANNOTATIONS, title: "List users" },
     },
@@ -57,7 +57,7 @@ export function registerUserTools(server: McpServer, env: Env) {
       const limit = args.limit ?? 100;
       const rows = await severaPaginate<UserOutputModel>(env, "/v1/users", {
         query: {
-          ...(args.isActive !== undefined ? { isActive: args.isActive } : {}),
+          ...(args.isActive != null ? { isActive: args.isActive } : {}),
           ...(args.businessUnitGuids?.length ? { businessUnitGuids: args.businessUnitGuids } : {}),
           ...(args.keywordGuids?.length ? { keywordGuids: args.keywordGuids } : {}),
           ...(args.supervisorUserGuids?.length

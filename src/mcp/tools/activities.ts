@@ -43,35 +43,35 @@ export function registerActivityTools(server: McpServer, env: Env, props: Sessio
         "Resolve `activityTypeGuids` via `severa_query({ path: '/v1/activitytypes' })`. `limit` default 100, max 500.",
       ].join("\n"),
       inputSchema: {
-        closed: z.boolean().optional(),
-        isApproved: z.boolean().optional(),
-        isUnassigned: z.boolean().optional(),
-        hasDuration: z.boolean().optional(),
-        hasHours: z.boolean().optional(),
-        activityCategories: z.array(z.string()).optional(),
-        activityTypeGuids: z.array(uuid).optional(),
-        recurrenceType: z.string().optional(),
-        customerGuids: z.array(uuid).optional(),
-        includeTasksWithNoCustomer: z.boolean().optional(),
-        projectGuids: z.array(uuid).optional(),
-        includeTasksWithNoProject: z.boolean().optional(),
-        projectBusinessUnitGuids: z.array(uuid).optional(),
-        projectOwnerGuids: z.array(uuid).optional(),
-        userGuids: z.array(uuid).optional(),
-        onlyMine: z.boolean().optional(),
-        includeAsMember: z.boolean().optional(),
-        userKeywordGuids: z.array(uuid).optional(),
-        phaseGuids: z.array(uuid).optional(),
-        includeSubPhases: z.boolean().optional(),
-        projectTaskStatusGuids: z.array(uuid).optional(),
-        contactGuids: z.array(uuid).optional(),
-        startDateTime: z.string().min(1).optional(),
-        endDateTime: z.string().min(1).optional(),
-        useStrictStartAndEndDateTime: z.boolean().optional(),
-        changedSince: isoDate.optional(),
-        nameContains: z.string().min(1).optional(),
-        descriptionContains: z.string().min(1).optional(),
-        limit: z.number().int().min(1).max(500).optional(),
+        closed: z.boolean().nullish(),
+        isApproved: z.boolean().nullish(),
+        isUnassigned: z.boolean().nullish(),
+        hasDuration: z.boolean().nullish(),
+        hasHours: z.boolean().nullish(),
+        activityCategories: z.array(z.string()).nullish(),
+        activityTypeGuids: z.array(uuid).nullish(),
+        recurrenceType: z.string().nullish(),
+        customerGuids: z.array(uuid).nullish(),
+        includeTasksWithNoCustomer: z.boolean().nullish(),
+        projectGuids: z.array(uuid).nullish(),
+        includeTasksWithNoProject: z.boolean().nullish(),
+        projectBusinessUnitGuids: z.array(uuid).nullish(),
+        projectOwnerGuids: z.array(uuid).nullish(),
+        userGuids: z.array(uuid).nullish(),
+        onlyMine: z.boolean().nullish(),
+        includeAsMember: z.boolean().nullish(),
+        userKeywordGuids: z.array(uuid).nullish(),
+        phaseGuids: z.array(uuid).nullish(),
+        includeSubPhases: z.boolean().nullish(),
+        projectTaskStatusGuids: z.array(uuid).nullish(),
+        contactGuids: z.array(uuid).nullish(),
+        startDateTime: z.string().min(1).nullish(),
+        endDateTime: z.string().min(1).nullish(),
+        useStrictStartAndEndDateTime: z.boolean().nullish(),
+        changedSince: isoDate.nullish(),
+        nameContains: z.string().min(1).nullish(),
+        descriptionContains: z.string().min(1).nullish(),
+        limit: z.number().int().min(1).max(500).nullish(),
       },
       annotations: { ...READ_ANNOTATIONS, title: "List activities" },
     },
@@ -81,29 +81,29 @@ export function registerActivityTools(server: McpServer, env: Env, props: Sessio
         ? [await requireSeveraUserGuid(env, props.email)]
         : args.userGuids;
 
-      const normalizeDate = (v?: string): string | undefined => {
+      const normalizeDate = (v?: string | null): string | undefined => {
         if (!v) return undefined;
         return /^\d{4}-\d{2}-\d{2}$/.test(v) ? `${v}T00:00:00Z` : v;
       };
 
       const rows = await severaPaginate<ActivityModel>(env, "/v1/activities", {
         query: {
-          ...(args.closed !== undefined ? { closed: args.closed } : {}),
-          ...(args.isApproved !== undefined ? { isApproved: args.isApproved } : {}),
-          ...(args.isUnassigned !== undefined ? { isUnassigned: args.isUnassigned } : {}),
-          ...(args.hasDuration !== undefined ? { hasDuration: args.hasDuration } : {}),
-          ...(args.hasHours !== undefined ? { hasHours: args.hasHours } : {}),
+          ...(args.closed != null ? { closed: args.closed } : {}),
+          ...(args.isApproved != null ? { isApproved: args.isApproved } : {}),
+          ...(args.isUnassigned != null ? { isUnassigned: args.isUnassigned } : {}),
+          ...(args.hasDuration != null ? { hasDuration: args.hasDuration } : {}),
+          ...(args.hasHours != null ? { hasHours: args.hasHours } : {}),
           ...(args.activityCategories?.length
             ? { activityCategories: args.activityCategories }
             : {}),
           ...(args.activityTypeGuids?.length ? { activityTypeGuids: args.activityTypeGuids } : {}),
           ...(args.recurrenceType ? { recurrenceType: args.recurrenceType } : {}),
           ...(args.customerGuids?.length ? { customerGuids: args.customerGuids } : {}),
-          ...(args.includeTasksWithNoCustomer !== undefined
+          ...(args.includeTasksWithNoCustomer != null
             ? { includeTasksWithNoCustomer: args.includeTasksWithNoCustomer }
             : {}),
           ...(args.projectGuids?.length ? { projectGuids: args.projectGuids } : {}),
-          ...(args.includeTasksWithNoProject !== undefined
+          ...(args.includeTasksWithNoProject != null
             ? { includeTasksWithNoProject: args.includeTasksWithNoProject }
             : {}),
           ...(args.projectBusinessUnitGuids?.length
@@ -113,10 +113,10 @@ export function registerActivityTools(server: McpServer, env: Env, props: Sessio
             ? { projectOwnerGuids: args.projectOwnerGuids }
             : {}),
           ...(userGuids?.length ? { userGuids } : {}),
-          ...(args.includeAsMember !== undefined ? { includeAsMember: args.includeAsMember } : {}),
+          ...(args.includeAsMember != null ? { includeAsMember: args.includeAsMember } : {}),
           ...(args.userKeywordGuids?.length ? { userKeywordGuids: args.userKeywordGuids } : {}),
           ...(args.phaseGuids?.length ? { phaseGuids: args.phaseGuids } : {}),
-          ...(args.includeSubPhases !== undefined
+          ...(args.includeSubPhases != null
             ? { includeSubPhases: args.includeSubPhases }
             : {}),
           ...(args.projectTaskStatusGuids?.length
@@ -129,7 +129,7 @@ export function registerActivityTools(server: McpServer, env: Env, props: Sessio
           ...(normalizeDate(args.endDateTime)
             ? { endDateTime: normalizeDate(args.endDateTime)! }
             : {}),
-          ...(args.useStrictStartAndEndDateTime !== undefined
+          ...(args.useStrictStartAndEndDateTime != null
             ? { useStrictStartAndEndDateTime: args.useStrictStartAndEndDateTime }
             : {}),
           ...(args.changedSince ? { changedSince: `${args.changedSince}T00:00:00Z` } : {}),

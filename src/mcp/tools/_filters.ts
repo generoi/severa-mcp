@@ -16,55 +16,55 @@ const uuid = z.string().uuid();
 // Shared by both /v1/salescases and /v1/projects.
 export const projectFiltersBase = {
   // identity shortcuts (singular) — merge into the corresponding *Guids array
-  customerGuid: uuid.optional(),
-  salesPersonGuid: uuid.optional(),
-  projectOwnerGuid: uuid.optional(),
-  onlyMine: z.boolean().optional(), // resolves to salesPersonGuid = signed-in user
+  customerGuid: uuid.nullish(),
+  salesPersonGuid: uuid.nullish(),
+  projectOwnerGuid: uuid.nullish(),
+  onlyMine: z.boolean().nullish(), // resolves to salesPersonGuid = signed-in user
 
   // server-side array filters
-  customerGuids: z.array(uuid).optional(),
-  salesPersonGuids: z.array(uuid).optional(),
-  projectOwnerGuids: z.array(uuid).optional(),
-  customerOwnerGuids: z.array(uuid).optional(),
-  projectGuids: z.array(uuid).optional(),
-  projectKeywordGuids: z.array(uuid).optional(),
-  projectStatusTypeGuids: z.array(uuid).optional(),
-  salesStatusTypeGuids: z.array(uuid).optional(),
-  businessUnitGuids: z.array(uuid).optional(),
-  marketSegmentationGuids: z.array(uuid).optional(),
-  companyCurrencyGuids: z.array(uuid).optional(),
-  currencyGuids: z.array(uuid).optional(),
-  projectMemberUserGuids: z.array(uuid).optional(),
-  numbers: z.array(z.number().int()).optional(),
+  customerGuids: z.array(uuid).nullish(),
+  salesPersonGuids: z.array(uuid).nullish(),
+  projectOwnerGuids: z.array(uuid).nullish(),
+  customerOwnerGuids: z.array(uuid).nullish(),
+  projectGuids: z.array(uuid).nullish(),
+  projectKeywordGuids: z.array(uuid).nullish(),
+  projectStatusTypeGuids: z.array(uuid).nullish(),
+  salesStatusTypeGuids: z.array(uuid).nullish(),
+  businessUnitGuids: z.array(uuid).nullish(),
+  marketSegmentationGuids: z.array(uuid).nullish(),
+  companyCurrencyGuids: z.array(uuid).nullish(),
+  currencyGuids: z.array(uuid).nullish(),
+  projectMemberUserGuids: z.array(uuid).nullish(),
+  numbers: z.array(z.number().int()).nullish(),
 
   // server-side scalar filters
-  isClosed: z.boolean().optional(),
-  hasRecurringFees: z.boolean().optional(),
-  minimumBillableAmount: z.number().optional(),
-  invoiceableDate: isoDate.optional(),
+  isClosed: z.boolean().nullish(),
+  hasRecurringFees: z.boolean().nullish(),
+  minimumBillableAmount: z.number().nullish(),
+  invoiceableDate: isoDate.nullish(),
 
   // client-side
-  isWon: z.boolean().optional(),
-  nameContains: z.string().min(1).optional(),
-  statusNameContains: z.string().min(1).optional(),
-  closedFrom: isoDate.optional(),
-  closedTo: isoDate.optional(),
+  isWon: z.boolean().nullish(),
+  nameContains: z.string().min(1).nullish(),
+  statusNameContains: z.string().min(1).nullish(),
+  closedFrom: isoDate.nullish(),
+  closedTo: isoDate.nullish(),
 
-  limit: z.number().int().min(1).max(500).optional(),
+  limit: z.number().int().min(1).max(500).nullish(),
 } as const;
 
 // /v1/projects adds these on top:
 export const projectsExtraFilters = {
-  currencyGuid: uuid.optional(),
-  changedSince: isoDate.optional(),
-  salesStatusChangedSince: isoDate.optional(),
-  projectStatusChangedSince: isoDate.optional(),
-  isBillable: z.boolean().optional(),
-  internal: z.boolean().optional(),
+  currencyGuid: uuid.nullish(),
+  changedSince: isoDate.nullish(),
+  salesStatusChangedSince: isoDate.nullish(),
+  projectStatusChangedSince: isoDate.nullish(),
+  isBillable: z.boolean().nullish(),
+  internal: z.boolean().nullish(),
 
   // client-side
-  expectedOrderFrom: isoDate.optional(),
-  expectedOrderTo: isoDate.optional(),
+  expectedOrderFrom: isoDate.nullish(),
+  expectedOrderTo: isoDate.nullish(),
 } as const;
 
 export type ProjectFiltersBase = {
@@ -79,7 +79,10 @@ export interface BuildQueryOptions {
   limit: number;
 }
 
-function mergeGuid(single?: string, plural?: string[]): string[] | undefined {
+function mergeGuid(
+  single?: string | null,
+  plural?: string[] | null,
+): string[] | undefined {
   const xs = [...(single ? [single] : []), ...(plural ?? [])];
   return xs.length ? xs : undefined;
 }
@@ -94,7 +97,7 @@ export function buildProjectsServerQuery(
     : mergeGuid(args.salesPersonGuid, args.salesPersonGuids);
   const projectOwnerGuids = mergeGuid(args.projectOwnerGuid, args.projectOwnerGuids);
 
-  const withTime = (d?: string): string | undefined =>
+  const withTime = (d?: string | null): string | undefined =>
     d ? `${d}T00:00:00Z` : undefined;
 
   const query: Record<string, string | number | boolean | string[] | undefined> = {
@@ -122,16 +125,16 @@ export function buildProjectsServerQuery(
       ? { projectMemberUserGuids: args.projectMemberUserGuids }
       : {}),
     ...(args.numbers?.length ? { numbers: args.numbers.map(String) } : {}),
-    ...(args.isClosed !== undefined ? { isClosed: args.isClosed } : {}),
-    ...(args.hasRecurringFees !== undefined ? { hasRecurringFees: args.hasRecurringFees } : {}),
-    ...(args.minimumBillableAmount !== undefined
+    ...(args.isClosed != null ? { isClosed: args.isClosed } : {}),
+    ...(args.hasRecurringFees != null ? { hasRecurringFees: args.hasRecurringFees } : {}),
+    ...(args.minimumBillableAmount != null
       ? { minimumBillableAmount: args.minimumBillableAmount }
       : {}),
     ...(args.invoiceableDate ? { invoiceableDate: args.invoiceableDate } : {}),
     // projects-only
     ...(args.currencyGuid ? { currencyGuid: args.currencyGuid } : {}),
-    ...(args.isBillable !== undefined ? { isBillable: args.isBillable } : {}),
-    ...(args.internal !== undefined ? { internal: args.internal } : {}),
+    ...(args.isBillable != null ? { isBillable: args.isBillable } : {}),
+    ...(args.internal != null ? { internal: args.internal } : {}),
     ...(withTime(args.changedSince) ? { changedSince: withTime(args.changedSince)! } : {}),
     ...(withTime(args.salesStatusChangedSince)
       ? { salesStatusChangedSince: withTime(args.salesStatusChangedSince)! }
@@ -150,7 +153,7 @@ export function applyProjectClientFilters(
   opts: { limit: number },
 ): ProjectOutputModel[] {
   const filtered = rows.filter((p) => {
-    if (args.isWon !== undefined && p.salesStatus?.isWon !== args.isWon) return false;
+    if (args.isWon != null && p.salesStatus?.isWon !== args.isWon) return false;
     if (args.nameContains) {
       const match =
         matches(p.name, args.nameContains) ||

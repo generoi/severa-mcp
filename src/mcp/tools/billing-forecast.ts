@@ -24,12 +24,12 @@ export function registerBillingForecastTools(server: McpServer, env: Env) {
         "Return project-forecast rows (including billingForecast) for a project within a horizon. Default horizon: today → +180 days.",
       inputSchema: {
         projectGuid: z.string().uuid(),
-        horizonDays: z.number().int().min(1).max(730).optional(),
+        horizonDays: z.number().int().min(1).max(730).nullish(),
       },
       annotations: { ...READ_ANNOTATIONS, title: "Get billing forecast" },
     },
-    async ({ projectGuid, horizonDays = 180 }) => {
-      const rows = await loadForecast(env, projectGuid, horizonDays);
+    async ({ projectGuid, horizonDays }) => {
+      const rows = await loadForecast(env, projectGuid, horizonDays ?? 180);
       if (!rows.length) return toText("No forecast rows in range.");
       const lines = rows.map(
         (r) =>
@@ -52,12 +52,14 @@ export function registerBillingForecastTools(server: McpServer, env: Env) {
       description:
         "Find active non-internal projects that have no billing-forecast rows in the upcoming horizon window.",
       inputSchema: {
-        horizonDays: z.number().int().min(30).max(730).optional(),
-        limit: z.number().int().min(1).max(200).optional(),
+        horizonDays: z.number().int().min(30).max(730).nullish(),
+        limit: z.number().int().min(1).max(200).nullish(),
       },
       annotations: { ...READ_ANNOTATIONS, title: "Projects missing forecast" },
     },
-    async ({ horizonDays = 90, limit = 100 }) => {
+    async (args) => {
+      const horizonDays = args.horizonDays ?? 90;
+      const limit = args.limit ?? 100;
       const projects = await severaPaginate<ProjectOutputModel>(env, "/v1/projects", {
         query: { isClosed: false, internal: false, rowCount: limit },
       });
@@ -86,13 +88,16 @@ export function registerBillingForecastTools(server: McpServer, env: Env) {
       description:
         "Find open sales cases (probability ≥ `minProbability`) whose billing forecast falls short of `expectedValue × probability` in the horizon window.",
       inputSchema: {
-        minProbability: z.number().min(0).max(100).optional(),
-        horizonDays: z.number().int().min(30).max(730).optional(),
-        limit: z.number().int().min(1).max(200).optional(),
+        minProbability: z.number().min(0).max(100).nullish(),
+        horizonDays: z.number().int().min(30).max(730).nullish(),
+        limit: z.number().int().min(1).max(200).nullish(),
       },
       annotations: { ...READ_ANNOTATIONS, title: "Cases missing forecast" },
     },
-    async ({ minProbability = 75, horizonDays = 180, limit = 100 }) => {
+    async (args) => {
+      const minProbability = args.minProbability ?? 75;
+      const horizonDays = args.horizonDays ?? 180;
+      const limit = args.limit ?? 100;
       const cases = await severaPaginate<ProjectOutputModel>(env, "/v1/salescases", {
         query: { isClosed: false, rowCount: limit },
       });

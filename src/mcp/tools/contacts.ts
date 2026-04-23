@@ -38,15 +38,15 @@ export function registerContactTools(server: McpServer, env: Env) {
         "`limit` default 100, max 500.",
       ].join("\n"),
       inputSchema: {
-        active: z.boolean().optional(),
-        textToSearch: z.string().min(1).optional(),
-        searchCriterias: z.array(z.string()).optional(),
-        sortings: z.array(z.string()).optional(),
-        changedSince: isoDate.optional(),
-        changedSinceOptions: z.array(z.string()).optional(),
-        customerGuid: z.string().uuid().optional(),
-        nameContains: z.string().min(1).optional(),
-        limit: z.number().int().min(1).max(500).optional(),
+        active: z.boolean().nullish(),
+        textToSearch: z.string().min(1).nullish(),
+        searchCriterias: z.array(z.string()).nullish(),
+        sortings: z.array(z.string()).nullish(),
+        changedSince: isoDate.nullish(),
+        changedSinceOptions: z.array(z.string()).nullish(),
+        customerGuid: z.string().uuid().nullish(),
+        nameContains: z.string().min(1).nullish(),
+        limit: z.number().int().min(1).max(500).nullish(),
       },
       annotations: { ...READ_ANNOTATIONS, title: "List contact persons" },
     },
@@ -54,7 +54,7 @@ export function registerContactTools(server: McpServer, env: Env) {
       const limit = args.limit ?? 100;
       const rows = await severaPaginate<ContactModel>(env, "/v1/contactpersons", {
         query: {
-          ...(args.active !== undefined ? { active: args.active } : {}),
+          ...(args.active != null ? { active: args.active } : {}),
           ...(args.textToSearch ? { textToSearch: args.textToSearch } : {}),
           ...(args.searchCriterias?.length ? { searchCriterias: args.searchCriterias } : {}),
           ...(args.sortings?.length ? { sortings: args.sortings } : {}),

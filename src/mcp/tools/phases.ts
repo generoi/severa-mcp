@@ -35,14 +35,14 @@ export function registerPhaseTools(server: McpServer, env: Env) {
         "For the hierarchical tree, prefer `severa_query({ path: '/v1/projects/{guid}/phaseswithhierarchy' })`. `limit` default 100, max 500.",
       ].join("\n"),
       inputSchema: {
-        projectGuid: uuid.optional(),
-        projectGuids: z.array(uuid).optional(),
-        code: z.string().optional(),
-        changedSince: isoDate.optional(),
-        nameContains: z.string().min(1).optional(),
-        statusNameContains: z.string().min(1).optional(),
-        isClosed: z.boolean().optional(),
-        limit: z.number().int().min(1).max(500).optional(),
+        projectGuid: uuid.nullish(),
+        projectGuids: z.array(uuid).nullish(),
+        code: z.string().nullish(),
+        changedSince: isoDate.nullish(),
+        nameContains: z.string().min(1).nullish(),
+        statusNameContains: z.string().min(1).nullish(),
+        isClosed: z.boolean().nullish(),
+        limit: z.number().int().min(1).max(500).nullish(),
       },
       annotations: { ...READ_ANNOTATIONS, title: "List phases" },
     },
@@ -66,7 +66,7 @@ export function registerPhaseTools(server: McpServer, env: Env) {
           if (args.nameContains && !matches(p.name, args.nameContains)) return false;
           if (args.statusNameContains && !matches(p.phaseStatus?.name, args.statusNameContains))
             return false;
-          if (args.isClosed !== undefined && p.phaseStatus?.isClosed !== args.isClosed) {
+          if (args.isClosed != null && p.phaseStatus?.isClosed !== args.isClosed) {
             return false;
           }
           return true;

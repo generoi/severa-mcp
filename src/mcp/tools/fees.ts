@@ -36,16 +36,16 @@ export function registerFeeTools(server: McpServer, env: Env) {
         "`limit` default 100, max 500.",
       ].join("\n"),
       inputSchema: {
-        changedSince: isoDate.optional(),
-        projectGuid: uuid.optional(),
-        userGuid: uuid.optional(),
-        descriptionContains: z.string().min(1).optional(),
-        eventDateFrom: isoDate.optional(),
-        eventDateTo: isoDate.optional(),
+        changedSince: isoDate.nullish(),
+        projectGuid: uuid.nullish(),
+        userGuid: uuid.nullish(),
+        descriptionContains: z.string().min(1).nullish(),
+        eventDateFrom: isoDate.nullish(),
+        eventDateTo: isoDate.nullish(),
         billableStatus: z
           .enum(["Billable", "NotBillable", "RemovedFromInvoice"])
-          .optional(),
-        limit: z.number().int().min(1).max(500).optional(),
+          .nullish(),
+        limit: z.number().int().min(1).max(500).nullish(),
       },
       annotations: { ...READ_ANNOTATIONS, title: "List project fees" },
     },
@@ -91,7 +91,7 @@ function renderFeeRow(r: ProjectFeeOutputModel): string {
     r.eventDate?.slice(0, 10),
     r.project?.name,
     r.description,
-    r.quantity !== undefined ? `${r.quantity}x` : undefined,
+    r.quantity != null ? `${r.quantity}x` : undefined,
     formatMoney(r.totalPrice),
     r.billableStatus,
   ].filter(Boolean);

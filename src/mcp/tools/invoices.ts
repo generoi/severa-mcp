@@ -42,28 +42,28 @@ export function registerInvoiceTools(server: McpServer, env: Env) {
         "`limit` default 100, max 500. Returns name, customer, status, total, date, GUID.",
       ].join("\n"),
       inputSchema: {
-        customerGuid: uuid.optional(),
-        customerGuids: z.array(uuid).optional(),
-        projectGuid: uuid.optional(),
-        projectGuids: z.array(uuid).optional(),
-        projectOwnerGuids: z.array(uuid).optional(),
-        projectBusinessUnitGuids: z.array(uuid).optional(),
-        salesPersonGuid: uuid.optional(),
-        salesPersonGuids: z.array(uuid).optional(),
-        createdByUserGuids: z.array(uuid).optional(),
-        invoiceStatusGuid: uuid.optional(),
-        invoiceStatusGuids: z.array(uuid).optional(),
-        startDate: isoDate.optional(),
-        endDate: isoDate.optional(),
-        paymentDateStart: isoDate.optional(),
-        minimumTotalExcludingTax: z.number().optional(),
-        maximumTotalExcludingTax: z.number().optional(),
-        referenceNumbers: z.array(z.string()).optional(),
-        numbers: z.array(z.number().int()).optional(),
-        changedSince: isoDate.optional(),
-        customerNameContains: z.string().min(1).optional(),
-        statusNameContains: z.string().min(1).optional(),
-        limit: z.number().int().min(1).max(500).optional(),
+        customerGuid: uuid.nullish(),
+        customerGuids: z.array(uuid).nullish(),
+        projectGuid: uuid.nullish(),
+        projectGuids: z.array(uuid).nullish(),
+        projectOwnerGuids: z.array(uuid).nullish(),
+        projectBusinessUnitGuids: z.array(uuid).nullish(),
+        salesPersonGuid: uuid.nullish(),
+        salesPersonGuids: z.array(uuid).nullish(),
+        createdByUserGuids: z.array(uuid).nullish(),
+        invoiceStatusGuid: uuid.nullish(),
+        invoiceStatusGuids: z.array(uuid).nullish(),
+        startDate: isoDate.nullish(),
+        endDate: isoDate.nullish(),
+        paymentDateStart: isoDate.nullish(),
+        minimumTotalExcludingTax: z.number().nullish(),
+        maximumTotalExcludingTax: z.number().nullish(),
+        referenceNumbers: z.array(z.string()).nullish(),
+        numbers: z.array(z.number().int()).nullish(),
+        changedSince: isoDate.nullish(),
+        customerNameContains: z.string().min(1).nullish(),
+        statusNameContains: z.string().min(1).nullish(),
+        limit: z.number().int().min(1).max(500).nullish(),
       },
       annotations: { ...READ_ANNOTATIONS, title: "List invoices" },
     },
@@ -88,10 +88,10 @@ export function registerInvoiceTools(server: McpServer, env: Env) {
           ...(args.startDate ? { startDate: args.startDate } : {}),
           ...(args.endDate ? { endDate: args.endDate } : {}),
           ...(args.paymentDateStart ? { paymentDateStart: args.paymentDateStart } : {}),
-          ...(args.minimumTotalExcludingTax !== undefined
+          ...(args.minimumTotalExcludingTax != null
             ? { minimumTotalExcludingTax: args.minimumTotalExcludingTax }
             : {}),
-          ...(args.maximumTotalExcludingTax !== undefined
+          ...(args.maximumTotalExcludingTax != null
             ? { maximumTotalExcludingTax: args.maximumTotalExcludingTax }
             : {}),
           ...(args.referenceNumbers?.length ? { referenceNumbers: args.referenceNumbers } : {}),
@@ -139,10 +139,10 @@ export function registerInvoiceTools(server: McpServer, env: Env) {
         "`limit` default 100, max 500.",
       ].join("\n"),
       inputSchema: {
-        changedSince: isoDate.optional(),
-        invoiceGuid: uuid.optional(),
-        descriptionContains: z.string().min(1).optional(),
-        limit: z.number().int().min(1).max(500).optional(),
+        changedSince: isoDate.nullish(),
+        invoiceGuid: uuid.nullish(),
+        descriptionContains: z.string().min(1).nullish(),
+        limit: z.number().int().min(1).max(500).nullish(),
       },
       annotations: { ...READ_ANNOTATIONS, title: "List invoice rows" },
     },
@@ -174,7 +174,10 @@ export function registerInvoiceTools(server: McpServer, env: Env) {
   );
 }
 
-function merge(single?: string, plural?: string[]): string[] | undefined {
+function merge(
+  single?: string | null,
+  plural?: string[] | null,
+): string[] | undefined {
   const xs = [...(single ? [single] : []), ...(plural ?? [])];
   return xs.length ? xs : undefined;
 }
@@ -193,7 +196,7 @@ function renderInvoiceRow(i: InvoiceOutputModel): string {
 function renderInvoiceRowRow(r: InvoiceRowOutputModel): string {
   const parts = [
     r.description ?? "(no description)",
-    r.quantity !== undefined ? `${r.quantity}${r.unit ? ` ${r.unit}` : ""}` : undefined,
+    r.quantity != null ? `${r.quantity}${r.unit ? ` ${r.unit}` : ""}` : undefined,
     formatMoney(r.totalPrice),
   ].filter(Boolean);
   return `- ${parts.join(" — ")} — \`${r.guid}\``;

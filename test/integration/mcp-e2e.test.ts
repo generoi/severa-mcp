@@ -141,6 +141,28 @@ describe.skipIf(!hasCreds)("MCP stdio server (e2e)", () => {
     expect(me.guid).toMatch(/^[0-9a-f-]{36}$/);
   }, 30_000);
 
+  it("accepts `null` for optional fields (LLMs frequently send null instead of omitting)", async () => {
+    // Regression: LLMs send {salesStatusChangedSince: null} and similar for
+    // every nullable field, which used to fail Zod validation. Every
+    // optional field is now z.XXX().nullish().
+    const result = await client.callTool({
+      name: "severa_list_projects",
+      arguments: {
+        salesStatusTypeGuids: ["39f9432a-a141-fcab-9142-8045bf8ed54a"],
+        salesStatusChangedSince: `${new Date().getUTCFullYear()}-01-01`,
+        expectedOrderFrom: null,
+        expectedOrderTo: null,
+        closedFrom: null,
+        closedTo: null,
+        nameContains: null,
+        statusNameContains: null,
+        isClosed: null,
+        limit: 3,
+      },
+    });
+    expect(result.isError).not.toBe(true);
+  }, 30_000);
+
   it("bogus tool call returns an error without killing the server", async () => {
     const result = await client.callTool({
       name: "severa_nonexistent_tool",

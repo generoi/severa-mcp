@@ -33,15 +33,15 @@ export function registerLookupTools(server: McpServer, env: Env, props: SessionP
         "Find Severa customers whose name contains the given text (case-insensitive). Searches the active customer list. Use to resolve a customer name into a GUID.",
       inputSchema: {
         text: z.string().min(1),
-        limit: z.number().int().min(1).max(50).optional(),
+        limit: z.number().int().min(1).max(50).nullish(),
       },
       annotations: { ...READ_ANNOTATIONS, title: "Find customer" },
     },
-    async ({ text, limit = 15 }) => {
+    async ({ text, limit }) => {
       const all = await getActiveCustomers(env);
       const hits = all
         .filter((c) => matches(c.name, text) || matches(c.code, text) || matches(c.number, text))
-        .slice(0, limit);
+        .slice(0, limit ?? 15);
       if (!hits.length) return toText(`No active customers matching "${text}".`);
       const lines = hits.map(
         (c) => `- ${c.name}${c.code ? ` (${c.code})` : ""} — \`${c.guid}\``,
@@ -57,17 +57,17 @@ export function registerLookupTools(server: McpServer, env: Env, props: SessionP
         "Find open Severa projects whose name contains the given text (case-insensitive). Optionally scope to a customer GUID.",
       inputSchema: {
         text: z.string().min(1),
-        customerGuid: z.string().uuid().optional(),
-        limit: z.number().int().min(1).max(50).optional(),
+        customerGuid: z.string().uuid().nullish(),
+        limit: z.number().int().min(1).max(50).nullish(),
       },
       annotations: { ...READ_ANNOTATIONS, title: "Find project" },
     },
-    async ({ text, customerGuid, limit = 15 }) => {
+    async ({ text, customerGuid, limit }) => {
       const all = await getActiveProjects(env);
       const scoped = customerGuid ? all.filter((p) => p.customer?.guid === customerGuid) : all;
       const hits = scoped
         .filter((p) => matches(p.name, text) || matches(p.number, text))
-        .slice(0, limit);
+        .slice(0, limit ?? 15);
       if (!hits.length) return toText(`No open projects matching "${text}".`);
       const lines = hits.map(
         (p) =>
@@ -85,13 +85,13 @@ export function registerLookupTools(server: McpServer, env: Env, props: SessionP
       description:
         "Find Severa users by email (exact) or by free-text match against name. Returns GUID, name, email.",
       inputSchema: {
-        email: z.string().email().optional(),
-        text: z.string().min(1).optional(),
-        limit: z.number().int().min(1).max(50).optional(),
+        email: z.string().email().nullish(),
+        text: z.string().min(1).nullish(),
+        limit: z.number().int().min(1).max(50).nullish(),
       },
       annotations: { ...READ_ANNOTATIONS, title: "Find user" },
     },
-    async ({ email, text, limit = 15 }) => {
+    async ({ email, text, limit }) => {
       if (!email && !text) return toText("Provide at least `email` or `text`.");
       const users = email
         ? await severaPaginate<UserWithName>(env, "/v1/users", { query: { email, rowCount: 25 } })
@@ -107,7 +107,7 @@ export function registerLookupTools(server: McpServer, env: Env, props: SessionP
               matches(u.email, text),
           )
         : users;
-      const hits = filtered.slice(0, limit);
+      const hits = filtered.slice(0, limit ?? 15);
       if (!hits.length) return toText("No users matched.");
       const lines = hits.map(
         (u) =>
@@ -165,19 +165,19 @@ export function registerLookupTools(server: McpServer, env: Env, props: SessionP
         "Use `limit` to cap the displayed list (default 100, max 500). Returns a list with name, code, number, and GUID.",
       ].join("\n"),
       inputSchema: {
-        isActive: z.boolean().optional(),
-        isInternal: z.boolean().optional(),
-        customerOwnerGuid: z.string().uuid().optional(),
+        isActive: z.boolean().nullish(),
+        isInternal: z.boolean().nullish(),
+        customerOwnerGuid: z.string().uuid().nullish(),
         changedSince: z
           .string()
           .regex(/^\d{4}-\d{2}-\d{2}$/)
-          .optional(),
-        emailAddresses: z.array(z.string().email()).optional(),
-        customerNames: z.array(z.string().min(1)).optional(),
-        vatNumber: z.string().optional(),
-        numbers: z.array(z.number().int()).optional(),
-        nameContains: z.string().min(1).optional(),
-        limit: z.number().int().min(1).max(500).optional(),
+          .nullish(),
+        emailAddresses: z.array(z.string().email()).nullish(),
+        customerNames: z.array(z.string().min(1)).nullish(),
+        vatNumber: z.string().nullish(),
+        numbers: z.array(z.number().int()).nullish(),
+        nameContains: z.string().min(1).nullish(),
+        limit: z.number().int().min(1).max(500).nullish(),
       },
       annotations: { ...READ_ANNOTATIONS, title: "List customers" },
     },
@@ -192,13 +192,13 @@ export function registerLookupTools(server: McpServer, env: Env, props: SessionP
         vatNumber,
         numbers,
         nameContains,
-        limit = 100,
       } = args;
+      const limit = args.limit ?? 100;
 
       const customers = await severaPaginate<CustomerModel>(env, "/v1/customers", {
         query: {
-          ...(isActive !== undefined ? { isActive } : {}),
-          ...(isInternal !== undefined ? { isInternal } : {}),
+          ...(isActive != null ? { isActive } : {}),
+          ...(isInternal != null ? { isInternal } : {}),
           ...(customerOwnerGuid ? { customerOwnerGuids: [customerOwnerGuid] } : {}),
           ...(changedSince ? { changedSince: `${changedSince}T00:00:00Z` } : {}),
           ...(emailAddresses?.length ? { emailAddresses } : {}),
@@ -291,7 +291,7 @@ function renderProjectRow(p: ProjectOutputModel): string {
     `**${p.name}**`,
     p.customer?.name,
     p.salesStatus?.name,
-    p.probability !== undefined ? `${p.probability}%` : undefined,
+    p.probability != null ? `${p.probability}%` : undefined,
     formatMoney(p.expectedValue as Money | undefined),
     p.expectedOrderDate ? `order ${p.expectedOrderDate.slice(0, 10)}` : undefined,
     p.closedDate ? `closed ${p.closedDate.slice(0, 10)}` : undefined,

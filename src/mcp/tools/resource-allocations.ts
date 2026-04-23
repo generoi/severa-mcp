@@ -39,13 +39,13 @@ export function registerResourceAllocationTools(server: McpServer, env: Env) {
         "`limit` default 100, max 500.",
       ].join("\n"),
       inputSchema: {
-        changedSince: isoDate.optional(),
-        projectGuid: uuid.optional(),
-        phaseGuid: uuid.optional(),
-        userGuid: uuid.optional(),
-        startFrom: isoDate.optional(),
-        startTo: isoDate.optional(),
-        limit: z.number().int().min(1).max(500).optional(),
+        changedSince: isoDate.nullish(),
+        projectGuid: uuid.nullish(),
+        phaseGuid: uuid.nullish(),
+        userGuid: uuid.nullish(),
+        startFrom: isoDate.nullish(),
+        startTo: isoDate.nullish(),
+        limit: z.number().int().min(1).max(500).nullish(),
       },
       annotations: { ...READ_ANNOTATIONS, title: "List resource allocations" },
     },
@@ -103,14 +103,14 @@ export function registerResourceAllocationTools(server: McpServer, env: Env) {
         "`limit` default 100, max 500.",
       ].join("\n"),
       inputSchema: {
-        startDate: isoDate.optional(),
-        endDate: isoDate.optional(),
-        useSalesProbability: z.boolean().optional(),
-        roleGuids: z.array(uuid).optional(),
-        phaseGuids: z.array(uuid).optional(),
-        projectGuids: z.array(uuid).optional(),
-        projectNameContains: z.string().min(1).optional(),
-        limit: z.number().int().min(1).max(500).optional(),
+        startDate: isoDate.nullish(),
+        endDate: isoDate.nullish(),
+        useSalesProbability: z.boolean().nullish(),
+        roleGuids: z.array(uuid).nullish(),
+        phaseGuids: z.array(uuid).nullish(),
+        projectGuids: z.array(uuid).nullish(),
+        projectNameContains: z.string().min(1).nullish(),
+        limit: z.number().int().min(1).max(500).nullish(),
       },
       annotations: { ...READ_ANNOTATIONS, title: "List role allocations" },
     },
@@ -123,7 +123,7 @@ export function registerResourceAllocationTools(server: McpServer, env: Env) {
           query: {
             ...(args.startDate ? { startDate: args.startDate } : {}),
             ...(args.endDate ? { endDate: args.endDate } : {}),
-            ...(args.useSalesProbability !== undefined
+            ...(args.useSalesProbability != null
               ? { useSalesProbability: args.useSalesProbability }
               : {}),
             ...(args.roleGuids?.length ? { roleGuids: args.roleGuids } : {}),
@@ -164,8 +164,8 @@ function renderAllocationRow(r: ResourceAllocationOutputModel): string {
     r.phase?.name,
     r.startDate?.slice(0, 10),
     r.endDate?.slice(0, 10),
-    r.hoursAllocated !== undefined ? `${r.hoursAllocated}h` : undefined,
-    r.percentageAllocated !== undefined ? `${r.percentageAllocated}%` : undefined,
+    r.hoursAllocated != null ? `${r.hoursAllocated}h` : undefined,
+    r.percentageAllocated != null ? `${r.percentageAllocated}%` : undefined,
   ].filter(Boolean);
   return `- ${parts.join(" — ")} — \`${r.guid}\``;
 }
@@ -177,8 +177,8 @@ function renderRoleAllocationRow(r: RoleAllocationOutputModel): string {
     r.phase?.name,
     r.startDate?.slice(0, 10),
     r.endDate?.slice(0, 10),
-    r.hoursAllocated !== undefined ? `${r.hoursAllocated}h` : undefined,
-    r.salesProbability !== undefined ? `${r.salesProbability}%` : undefined,
+    r.hoursAllocated != null ? `${r.hoursAllocated}h` : undefined,
+    r.salesProbability != null ? `${r.salesProbability}%` : undefined,
   ].filter(Boolean);
   return `- ${parts.join(" — ")} — \`${r.guid}\``;
 }

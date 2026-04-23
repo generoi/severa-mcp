@@ -92,9 +92,9 @@ export function registerCaseTools(server: McpServer, env: Env, props: SessionPro
       description:
         "Summarize open sales cases: counts, raw expected value, and probability-weighted value grouped by sales status. Optionally scope to a customer, a sales person, or the signed-in user.",
       inputSchema: {
-        customerGuid: z.string().uuid().optional(),
-        salesPersonGuid: z.string().uuid().optional(),
-        onlyMine: z.boolean().optional(),
+        customerGuid: z.string().uuid().nullish(),
+        salesPersonGuid: z.string().uuid().nullish(),
+        onlyMine: z.boolean().nullish(),
       },
       annotations: { ...READ_ANNOTATIONS, title: "Pipeline summary" },
     },
@@ -149,7 +149,7 @@ function renderCaseRow(c: ProjectOutputModel): string {
     `**${c.name}**`,
     c.customer?.name,
     c.salesStatus?.name,
-    c.probability !== undefined ? `${c.probability}%` : undefined,
+    c.probability != null ? `${c.probability}%` : undefined,
     formatMoney(c.expectedValue),
     c.expectedOrderDate,
   ].filter(Boolean);

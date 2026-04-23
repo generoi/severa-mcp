@@ -52,17 +52,19 @@ export function registerQueryTools(server: McpServer, env: Env) {
               z.array(z.string()),
             ]),
           )
-          .optional(),
-        paginate: z.boolean().optional(),
-        maxRows: z.number().int().min(1).max(5000).optional(),
+          .nullish(),
+        paginate: z.boolean().nullish(),
+        maxRows: z.number().int().min(1).max(5000).nullish(),
       },
       annotations: { ...READ_ANNOTATIONS, title: "Severa API query" },
     },
-    async ({ path, query, paginate = true, maxRows = 500 }) => {
+    async ({ path, query, paginate, maxRows }) => {
+      const shouldPaginate = paginate ?? true;
+      const max = maxRows ?? 500;
       const opts = query ? { query } : {};
-      if (paginate) {
-        const data = await severaPaginate<unknown>(env, path, opts, maxRows);
-        const truncated = data.length >= maxRows;
+      if (shouldPaginate) {
+        const data = await severaPaginate<unknown>(env, path, opts, max);
+        const truncated = data.length >= max;
         const title = `${path} — ${data.length} row(s)${truncated ? " (truncated; increase maxRows to see more)" : ""}`;
         return toJsonBlock(title, data);
       }
