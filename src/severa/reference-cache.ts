@@ -1,8 +1,13 @@
 import { severaPaginate } from "./client";
 import type { SeveraEnv } from "./client";
-import type { CustomerModel, ProjectOutputModel } from "./types";
+import type {
+  CustomerModel,
+  ProjectOutputModel,
+  SalesStatusTypeOutputModel,
+} from "./types";
 
 const TTL_ACTIVE = 15 * 60;
+const TTL_LONG = 24 * 60 * 60;
 
 async function cached<T>(
   env: SeveraEnv,
@@ -30,6 +35,21 @@ export function getActiveProjects(env: SeveraEnv): Promise<ProjectOutputModel[]>
     severaPaginate<ProjectOutputModel>(env, "/v1/projects", {
       query: { isClosed: false, rowCount: 500 },
     }),
+  );
+}
+
+export function getSalesStatusTypesByState(
+  env: SeveraEnv,
+  state: "InProgress" | "Won" | "Lost",
+): Promise<SalesStatusTypeOutputModel[]> {
+  return cached(
+    env,
+    `severa:ref:salesstatustypes:${state.toLowerCase()}`,
+    () =>
+      severaPaginate<SalesStatusTypeOutputModel>(env, "/v1/salesstatustypes", {
+        query: { active: true, salesState: state, rowCount: 100 },
+      }),
+    TTL_LONG,
   );
 }
 

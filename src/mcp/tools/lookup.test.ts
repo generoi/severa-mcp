@@ -93,6 +93,66 @@ describe("severa_list_projects", () => {
   });
 });
 
+describe("severa_list_projects isWon server-side resolution", () => {
+  // Regression: the salesStatus sub-model on /v1/projects does NOT include
+  // `isWon`, so a client-side check always fails. The fix resolves isWon
+  // to salesStatusTypeGuids by querying /v1/salesstatustypes?salesState=Won.
+  it("isWon:true queries /v1/salesstatustypes?salesState=Won and injects GUIDs", async () => {
+    const { calls } = mockSeveraFetch({
+      routes: [
+        {
+          path: "/v1/salesstatustypes",
+          query: { salesState: "Won", active: "true" },
+          response: [
+            { guid: "won-guid-1", name: "Order / NB", salesState: "Won" },
+            { guid: "won-guid-2", name: "Order / EB", salesState: "Won" },
+          ],
+        },
+        {
+          path: "/v1/projects",
+          query: { salesStatusTypeGuids: ["won-guid-1", "won-guid-2"] },
+          response: projectsWonNb,
+        },
+      ],
+    });
+    const { text } = await callTool(
+      "severa_list_projects",
+      { isWon: true },
+      [registerLookupTools],
+    );
+    expect(text).toMatch(/2 project\(s\)/);
+    // Confirm the status-types endpoint was hit
+    const statusCall = calls.find((c) => c.url.includes("/v1/salesstatustypes"));
+    expect(statusCall).toBeTruthy();
+    // And projects was called with the resolved Won GUIDs
+    const projCall = calls.find((c) => c.url.includes("/v1/projects?"));
+    expect(projCall?.url).toContain("salesStatusTypeGuids=won-guid-1");
+    expect(projCall?.url).toContain("salesStatusTypeGuids=won-guid-2");
+  });
+
+  it("explicit salesStatusTypeGuids wins over isWon (no status-type lookup)", async () => {
+    const { calls } = mockSeveraFetch({
+      routes: [
+        {
+          path: "/v1/projects",
+          query: { salesStatusTypeGuids: "39f9432a-a141-fcab-9142-8045bf8ed54a" },
+          response: projectsWonNb,
+        },
+      ],
+    });
+    await callTool(
+      "severa_list_projects",
+      {
+        isWon: true,
+        salesStatusTypeGuids: ["39f9432a-a141-fcab-9142-8045bf8ed54a"],
+      },
+      [registerLookupTools],
+    );
+    // No status-types fetch when explicit GUIDs are supplied
+    expect(calls.find((c) => c.url.includes("/v1/salesstatustypes"))).toBeUndefined();
+  });
+});
+
 describe("tool registration", () => {
   it("advertises every lookup tool with a non-empty description", async () => {
     const tools = await listTools([registerLookupTools]);

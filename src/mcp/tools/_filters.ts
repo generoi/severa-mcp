@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { ProjectOutputModel } from "../../severa/types";
-import { matches } from "../../severa/reference-cache";
+import { getSalesStatusTypesByState, matches } from "../../severa/reference-cache";
+import type { SeveraEnv } from "../../severa/client";
 
 // Filters shared by /v1/salescases and /v1/projects (nearly identical filter
 // sets — projects adds a handful of date-since filters and the currency
@@ -147,13 +148,38 @@ export function buildProjectsServerQuery(
   return query;
 }
 
+// Resolve the isWon convenience flag into a set of salesStatusTypeGuids
+// to inject server-side. Severa's ProjectOutputModel.salesStatus does NOT
+// actually include the `isWon` field on list responses, so checking it
+// client-side always fails — the only reliable way to filter by "won" is
+// to look up which status types have salesState=Won and filter by their
+// GUIDs.
+//
+// Returns undefined when isWon is not set (caller keeps their own
+// salesStatusTypeGuids), or when the caller already supplied explicit
+// salesStatusTypeGuids (explicit wins).
+export async function resolveIsWonToStatusTypeGuids(
+  env: SeveraEnv,
+  args: Pick<ProjectFiltersBase, "isWon" | "salesStatusTypeGuids">,
+): Promise<string[] | undefined> {
+  if (args.isWon == null) return undefined;
+  if (args.salesStatusTypeGuids?.length) return undefined;
+  const states: ("InProgress" | "Won" | "Lost")[] = args.isWon
+    ? ["Won"]
+    : ["InProgress", "Lost"];
+  const all = await Promise.all(states.map((s) => getSalesStatusTypesByState(env, s)));
+  return all.flat().map((t) => t.guid).filter((g): g is string => Boolean(g));
+}
+
 export function applyProjectClientFilters(
   rows: ProjectOutputModel[],
   args: ProjectFiltersBase & ProjectsExtraFilters,
   opts: { limit: number },
 ): ProjectOutputModel[] {
   const filtered = rows.filter((p) => {
-    if (args.isWon != null && p.salesStatus?.isWon !== args.isWon) return false;
+    // `isWon` is handled server-side via resolveIsWonToStatusTypeGuids +
+    // injection into salesStatusTypeGuids. No client-side check here
+    // (salesStatus.isWon is not populated on list responses).
     if (args.nameContains) {
       const match =
         matches(p.name, args.nameContains) ||

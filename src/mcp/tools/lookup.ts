@@ -16,6 +16,7 @@ import {
   buildProjectsServerQuery,
   projectFiltersBase,
   projectsExtraFilters,
+  resolveIsWonToStatusTypeGuids,
 } from "./_filters";
 
 const READ_ANNOTATIONS = {
@@ -269,8 +270,11 @@ export function registerLookupTools(server: McpServer, env: Env, props: SessionP
       if (args.onlyMine) {
         queryOpts.effectiveSalesPerson = await requireSeveraUserGuid(env, props.email);
       }
+      const effectiveArgs = { ...args };
+      const resolvedGuids = await resolveIsWonToStatusTypeGuids(env, args);
+      if (resolvedGuids) effectiveArgs.salesStatusTypeGuids = resolvedGuids;
       const projects = await severaPaginate<ProjectOutputModel>(env, "/v1/projects", {
-        query: buildProjectsServerQuery(args, queryOpts),
+        query: buildProjectsServerQuery(effectiveArgs, queryOpts),
       });
 
       const hits = applyProjectClientFilters(projects, args, { limit });

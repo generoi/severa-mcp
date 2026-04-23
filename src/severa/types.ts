@@ -94,6 +94,14 @@ export interface ProjectForecastOutputModel {
   laborExpenseForecastNotes?: string | null;
 }
 
+export interface SalesStatusTypeOutputModel {
+  guid: Guid;
+  name?: string;
+  isActive?: boolean;
+  salesState?: "InProgress" | "Won" | "Lost";
+  defaultProbability?: number;
+}
+
 export interface InvoiceStatusSubModel {
   guid: Guid;
   name?: string;
