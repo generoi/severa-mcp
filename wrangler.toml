@@ -2,7 +2,7 @@ name = "severa-mcp"
 main = "src/index.ts"
 compatibility_date = "2025-04-01"
 compatibility_flags = ["nodejs_compat"]
-account_id = "REPLACE_ME_CLOUDFLARE_ACCOUNT_ID"
+# account_id comes from CLOUDFLARE_ACCOUNT_ID env var (GitHub secret or local shell) at deploy time
 
 # KV namespaces
 #   OAUTH_KV   - Workers OAuth Provider stores authorization/refresh tokens + client registrations
