@@ -11,6 +11,12 @@ import type { Env } from "../../env";
 import type { SessionProps } from "../../auth/session";
 import type { CustomerModel, Money, ProjectOutputModel, UserWithName } from "../../severa/types";
 import { formatMoney, toJsonBlock, toText } from "../format";
+import {
+  applyProjectClientFilters,
+  buildProjectsServerQuery,
+  projectFiltersBase,
+  projectsExtraFilters,
+} from "./_filters";
 
 const READ_ANNOTATIONS = {
   readOnlyHint: true,
@@ -229,162 +235,45 @@ export function registerLookupTools(server: McpServer, env: Env, props: SessionP
     "severa_list_projects",
     {
       description: [
-        "List Severa projects from `/v1/projects` with the full filter set the endpoint supports.",
+        "List Severa projects from `/v1/projects`. Exposes every filter the endpoint supports plus client-side conveniences.",
         "",
         "IMPORTANT: at some Severa setups (including Genero), cases that reach a Won status like 'Order / NB' are listed under `/v1/projects`, NOT under `/v1/salescases`. If `severa_list_sales_cases` returns nothing for a Won-status question, use this tool instead.",
         "",
-        "TIP: `/v1/projects` contains lots of historical data. When filtering by `salesStatusTypeGuids` alone you may hit the 2000-row pagination ceiling before reaching recent matches. Pair status filters with a date filter (`salesStatusChangedSince` is usually the right one for 'marked as X in period Y' questions) to narrow the result set server-side.",
+        "TIP: `/v1/projects` contains lots of historical data. When filtering by `salesStatusTypeGuids` alone you may hit the 2000-row pagination ceiling before reaching recent matches. Pair status filters with a date filter (`salesStatusChangedSince` is usually the right one for 'marked as X in period Y' questions) to narrow server-side.",
         "",
-        "Server-side filters (sent to Severa):",
-        "- `customerGuid`, `salesPersonGuid`, `projectOwnerGuid` — resolve via `severa_find_customer` / `severa_find_user`",
-        "- `onlyMine` — shortcut for salesPersonGuid = signed-in user",
-        "- `salesStatusTypeGuids` — resolve via `severa_query({ path: '/v1/salesstatustypes' })`",
-        "- `projectStatusTypeGuids` — resolve via `severa_query({ path: '/v1/projectstatustypes' })`",
-        "- `projectKeywordGuids` — resolve via `severa_query({ path: '/v1/keywords' })`",
-        "- `businessUnitGuids` — resolve via `severa_query({ path: '/v1/businessunits' })`",
-        "- `isClosed` / `isBillable` / `internal` / `hasRecurringFees`",
-        "- `salesStatusChangedSince` / `projectStatusChangedSince` / `changedSince` — YYYY-MM-DD (answers 'marked as X this month/year')",
-        "- `numbers` — array of project numbers (int)",
+        "Server-side filters (singular shortcuts merge into the plural *Guids):",
+        "- `customerGuid` / `customerGuids` — resolve via `severa_find_customer`",
+        "- `salesPersonGuid` / `salesPersonGuids` / `onlyMine` — via `severa_find_user`",
+        "- `projectOwnerGuid` / `projectOwnerGuids`",
+        "- `customerOwnerGuids`, `projectGuids`, `projectKeywordGuids`, `projectStatusTypeGuids`, `salesStatusTypeGuids`, `businessUnitGuids`, `marketSegmentationGuids`, `companyCurrencyGuids`, `currencyGuid` / `currencyGuids`, `projectMemberUserGuids`, `numbers`",
+        "- `isClosed`, `isBillable`, `internal`, `hasRecurringFees`",
+        "- `minimumBillableAmount`, `invoiceableDate`",
+        "- `changedSince` / `salesStatusChangedSince` / `projectStatusChangedSince` — YYYY-MM-DD (answers 'changed/marked this month')",
+        "- Reference-data GUIDs via `severa_query({ path: '/v1/salesstatustypes' | '/v1/projectstatustypes' | '/v1/keywords' | '/v1/businessunits' | ... })`",
         "",
         "Client-side filters (applied after fetch):",
-        "- `nameContains` — substring of project name, customer name, or project number",
-        "- `statusNameContains` — substring of sales-status name (e.g. 'NB', 'EB', 'Order')",
+        "- `isWon` — by `salesStatus.isWon`",
+        "- `nameContains` — matches project name, customer name, or project number",
+        "- `statusNameContains` — substring of sales-status name",
         "- `expectedOrderFrom` / `expectedOrderTo` — YYYY-MM-DD range on `expectedOrderDate`",
         "- `closedFrom` / `closedTo` — YYYY-MM-DD range on `closedDate`",
         "",
-        "Use `limit` to cap the displayed list (default 100, max 500). Returns a formatted list with name, customer, sales status, probability, expected value, expected order / closed date, and GUID.",
+        "`limit` caps the displayed list (default 100, max 500).",
       ].join("\n"),
-      inputSchema: {
-        customerGuid: z.string().uuid().optional(),
-        salesPersonGuid: z.string().uuid().optional(),
-        projectOwnerGuid: z.string().uuid().optional(),
-        onlyMine: z.boolean().optional(),
-        salesStatusTypeGuids: z.array(z.string().uuid()).optional(),
-        projectStatusTypeGuids: z.array(z.string().uuid()).optional(),
-        projectKeywordGuids: z.array(z.string().uuid()).optional(),
-        businessUnitGuids: z.array(z.string().uuid()).optional(),
-        isClosed: z.boolean().optional(),
-        isBillable: z.boolean().optional(),
-        internal: z.boolean().optional(),
-        hasRecurringFees: z.boolean().optional(),
-        salesStatusChangedSince: z
-          .string()
-          .regex(/^\d{4}-\d{2}-\d{2}$/)
-          .optional(),
-        projectStatusChangedSince: z
-          .string()
-          .regex(/^\d{4}-\d{2}-\d{2}$/)
-          .optional(),
-        changedSince: z
-          .string()
-          .regex(/^\d{4}-\d{2}-\d{2}$/)
-          .optional(),
-        numbers: z.array(z.number().int()).optional(),
-        nameContains: z.string().min(1).optional(),
-        statusNameContains: z.string().min(1).optional(),
-        expectedOrderFrom: z
-          .string()
-          .regex(/^\d{4}-\d{2}-\d{2}$/)
-          .optional(),
-        expectedOrderTo: z
-          .string()
-          .regex(/^\d{4}-\d{2}-\d{2}$/)
-          .optional(),
-        closedFrom: z
-          .string()
-          .regex(/^\d{4}-\d{2}-\d{2}$/)
-          .optional(),
-        closedTo: z
-          .string()
-          .regex(/^\d{4}-\d{2}-\d{2}$/)
-          .optional(),
-        limit: z.number().int().min(1).max(500).optional(),
-      },
+      inputSchema: { ...projectFiltersBase, ...projectsExtraFilters },
       annotations: { ...READ_ANNOTATIONS, title: "List projects" },
     },
     async (args) => {
-      const {
-        customerGuid,
-        salesPersonGuid,
-        projectOwnerGuid,
-        onlyMine,
-        salesStatusTypeGuids,
-        projectStatusTypeGuids,
-        projectKeywordGuids,
-        businessUnitGuids,
-        isClosed,
-        isBillable,
-        internal,
-        hasRecurringFees,
-        salesStatusChangedSince,
-        projectStatusChangedSince,
-        changedSince,
-        numbers,
-        nameContains,
-        statusNameContains,
-        expectedOrderFrom,
-        expectedOrderTo,
-        closedFrom,
-        closedTo,
-        limit = 100,
-      } = args;
-
-      const effectiveSalesPerson =
-        salesPersonGuid ??
-        (onlyMine ? await requireSeveraUserGuid(env, props.email) : undefined);
-
+      const limit = args.limit ?? 100;
+      const queryOpts: { effectiveSalesPerson?: string; limit: number } = { limit };
+      if (args.onlyMine) {
+        queryOpts.effectiveSalesPerson = await requireSeveraUserGuid(env, props.email);
+      }
       const projects = await severaPaginate<ProjectOutputModel>(env, "/v1/projects", {
-        query: {
-          ...(customerGuid ? { customerGuids: [customerGuid] } : {}),
-          ...(effectiveSalesPerson ? { salesPersonGuids: [effectiveSalesPerson] } : {}),
-          ...(projectOwnerGuid ? { projectOwnerGuids: [projectOwnerGuid] } : {}),
-          ...(salesStatusTypeGuids?.length ? { salesStatusTypeGuids } : {}),
-          ...(projectStatusTypeGuids?.length ? { projectStatusTypeGuids } : {}),
-          ...(projectKeywordGuids?.length ? { projectKeywordGuids } : {}),
-          ...(businessUnitGuids?.length ? { businessUnitGuids } : {}),
-          ...(isClosed !== undefined ? { isClosed } : {}),
-          ...(isBillable !== undefined ? { isBillable } : {}),
-          ...(internal !== undefined ? { internal } : {}),
-          ...(hasRecurringFees !== undefined ? { hasRecurringFees } : {}),
-          ...(salesStatusChangedSince
-            ? { salesStatusChangedSince: `${salesStatusChangedSince}T00:00:00Z` }
-            : {}),
-          ...(projectStatusChangedSince
-            ? { projectStatusChangedSince: `${projectStatusChangedSince}T00:00:00Z` }
-            : {}),
-          ...(changedSince ? { changedSince: `${changedSince}T00:00:00Z` } : {}),
-          ...(numbers?.length ? { numbers: numbers.map(String) } : {}),
-          rowCount: Math.min(1000, Math.max(limit, 100)),
-        },
+        query: buildProjectsServerQuery(args, queryOpts),
       });
 
-      const hits = projects
-        .filter((p) => {
-          if (nameContains) {
-            const match =
-              matches(p.name, nameContains) ||
-              matches(p.customer?.name, nameContains) ||
-              matches(p.number, nameContains);
-            if (!match) return false;
-          }
-          if (statusNameContains && !matches(p.salesStatus?.name, statusNameContains)) {
-            return false;
-          }
-          if (expectedOrderFrom || expectedOrderTo) {
-            const d = p.expectedOrderDate?.slice(0, 10);
-            if (!d) return false;
-            if (expectedOrderFrom && d < expectedOrderFrom) return false;
-            if (expectedOrderTo && d > expectedOrderTo) return false;
-          }
-          if (closedFrom || closedTo) {
-            const d = p.closedDate?.slice(0, 10);
-            if (!d) return false;
-            if (closedFrom && d < closedFrom) return false;
-            if (closedTo && d > closedTo) return false;
-          }
-          return true;
-        })
-        .slice(0, limit);
+      const hits = applyProjectClientFilters(projects, args, { limit });
 
       if (!hits.length) return toText("No projects match those filters.");
       const totalRaw = hits.reduce((s, p) => s + (p.expectedValue?.amount ?? 0), 0);
