@@ -15,8 +15,8 @@ const READ_ANNOTATIONS = {
   openWorldHint: true,
 };
 
-const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
-const uuid = z.string().uuid();
+const isoDate = () => z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+const uuid = () => z.string().uuid();
 
 export function registerActivityTools(server: McpServer, env: Env, props: SessionProps) {
   server.registerTool(
@@ -49,26 +49,26 @@ export function registerActivityTools(server: McpServer, env: Env, props: Sessio
         hasDuration: z.boolean().nullish(),
         hasHours: z.boolean().nullish(),
         activityCategories: z.array(z.string()).nullish(),
-        activityTypeGuids: z.array(uuid).nullish(),
+        activityTypeGuids: z.array(uuid()).nullish(),
         recurrenceType: z.string().nullish(),
-        customerGuids: z.array(uuid).nullish(),
+        customerGuids: z.array(uuid()).nullish(),
         includeTasksWithNoCustomer: z.boolean().nullish(),
-        projectGuids: z.array(uuid).nullish(),
+        projectGuids: z.array(uuid()).nullish(),
         includeTasksWithNoProject: z.boolean().nullish(),
-        projectBusinessUnitGuids: z.array(uuid).nullish(),
-        projectOwnerGuids: z.array(uuid).nullish(),
-        userGuids: z.array(uuid).nullish(),
+        projectBusinessUnitGuids: z.array(uuid()).nullish(),
+        projectOwnerGuids: z.array(uuid()).nullish(),
+        userGuids: z.array(uuid()).nullish(),
         onlyMine: z.boolean().nullish(),
         includeAsMember: z.boolean().nullish(),
-        userKeywordGuids: z.array(uuid).nullish(),
-        phaseGuids: z.array(uuid).nullish(),
+        userKeywordGuids: z.array(uuid()).nullish(),
+        phaseGuids: z.array(uuid()).nullish(),
         includeSubPhases: z.boolean().nullish(),
-        projectTaskStatusGuids: z.array(uuid).nullish(),
-        contactGuids: z.array(uuid).nullish(),
+        projectTaskStatusGuids: z.array(uuid()).nullish(),
+        contactGuids: z.array(uuid()).nullish(),
         startDateTime: z.string().min(1).nullish(),
         endDateTime: z.string().min(1).nullish(),
         useStrictStartAndEndDateTime: z.boolean().nullish(),
-        changedSince: isoDate.nullish(),
+        changedSince: isoDate().nullish(),
         nameContains: z.string().min(1).nullish(),
         descriptionContains: z.string().min(1).nullish(),
         limit: z.number().int().min(1).max(500).nullish(),

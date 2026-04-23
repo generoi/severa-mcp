@@ -11,61 +11,61 @@ import type { SeveraEnv } from "../../severa/client";
 // client-side conveniences (nameContains, statusNameContains, closedFrom/To,
 // expectedOrderFrom/To) that are not available server-side.
 
-const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
-const uuid = z.string().uuid();
+const isoDate = () => z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+const uuid = () => z.string().uuid();
 
 // Shared by both /v1/salescases and /v1/projects.
 export const projectFiltersBase = {
   // identity shortcuts (singular) — merge into the corresponding *Guids array
-  customerGuid: uuid.nullish(),
-  salesPersonGuid: uuid.nullish(),
-  projectOwnerGuid: uuid.nullish(),
+  customerGuid: uuid().nullish(),
+  salesPersonGuid: uuid().nullish(),
+  projectOwnerGuid: uuid().nullish(),
   onlyMine: z.boolean().nullish(), // resolves to salesPersonGuid = signed-in user
 
   // server-side array filters
-  customerGuids: z.array(uuid).nullish(),
-  salesPersonGuids: z.array(uuid).nullish(),
-  projectOwnerGuids: z.array(uuid).nullish(),
-  customerOwnerGuids: z.array(uuid).nullish(),
-  projectGuids: z.array(uuid).nullish(),
-  projectKeywordGuids: z.array(uuid).nullish(),
-  projectStatusTypeGuids: z.array(uuid).nullish(),
-  salesStatusTypeGuids: z.array(uuid).nullish(),
-  businessUnitGuids: z.array(uuid).nullish(),
-  marketSegmentationGuids: z.array(uuid).nullish(),
-  companyCurrencyGuids: z.array(uuid).nullish(),
-  currencyGuids: z.array(uuid).nullish(),
-  projectMemberUserGuids: z.array(uuid).nullish(),
+  customerGuids: z.array(uuid()).nullish(),
+  salesPersonGuids: z.array(uuid()).nullish(),
+  projectOwnerGuids: z.array(uuid()).nullish(),
+  customerOwnerGuids: z.array(uuid()).nullish(),
+  projectGuids: z.array(uuid()).nullish(),
+  projectKeywordGuids: z.array(uuid()).nullish(),
+  projectStatusTypeGuids: z.array(uuid()).nullish(),
+  salesStatusTypeGuids: z.array(uuid()).nullish(),
+  businessUnitGuids: z.array(uuid()).nullish(),
+  marketSegmentationGuids: z.array(uuid()).nullish(),
+  companyCurrencyGuids: z.array(uuid()).nullish(),
+  currencyGuids: z.array(uuid()).nullish(),
+  projectMemberUserGuids: z.array(uuid()).nullish(),
   numbers: z.array(z.number().int()).nullish(),
 
   // server-side scalar filters
   isClosed: z.boolean().nullish(),
   hasRecurringFees: z.boolean().nullish(),
   minimumBillableAmount: z.number().nullish(),
-  invoiceableDate: isoDate.nullish(),
+  invoiceableDate: isoDate().nullish(),
 
   // client-side
   isWon: z.boolean().nullish(),
   nameContains: z.string().min(1).nullish(),
   statusNameContains: z.string().min(1).nullish(),
-  closedFrom: isoDate.nullish(),
-  closedTo: isoDate.nullish(),
+  closedFrom: isoDate().nullish(),
+  closedTo: isoDate().nullish(),
 
   limit: z.number().int().min(1).max(500).nullish(),
 } as const;
 
 // /v1/projects adds these on top:
 export const projectsExtraFilters = {
-  currencyGuid: uuid.nullish(),
-  changedSince: isoDate.nullish(),
-  salesStatusChangedSince: isoDate.nullish(),
-  projectStatusChangedSince: isoDate.nullish(),
+  currencyGuid: uuid().nullish(),
+  changedSince: isoDate().nullish(),
+  salesStatusChangedSince: isoDate().nullish(),
+  projectStatusChangedSince: isoDate().nullish(),
   isBillable: z.boolean().nullish(),
   internal: z.boolean().nullish(),
 
   // client-side
-  expectedOrderFrom: isoDate.nullish(),
-  expectedOrderTo: isoDate.nullish(),
+  expectedOrderFrom: isoDate().nullish(),
+  expectedOrderTo: isoDate().nullish(),
 } as const;
 
 export type ProjectFiltersBase = {

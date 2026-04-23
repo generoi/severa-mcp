@@ -13,8 +13,8 @@ const READ_ANNOTATIONS = {
   openWorldHint: true,
 };
 
-const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
-const uuid = z.string().uuid();
+const isoDate = () => z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+const uuid = () => z.string().uuid();
 
 export function registerPhaseTools(server: McpServer, env: Env) {
   server.registerTool(
@@ -35,10 +35,10 @@ export function registerPhaseTools(server: McpServer, env: Env) {
         "For the hierarchical tree, prefer `severa_query({ path: '/v1/projects/{guid}/phaseswithhierarchy' })`. `limit` default 100, max 500.",
       ].join("\n"),
       inputSchema: {
-        projectGuid: uuid.nullish(),
-        projectGuids: z.array(uuid).nullish(),
+        projectGuid: uuid().nullish(),
+        projectGuids: z.array(uuid()).nullish(),
         code: z.string().nullish(),
-        changedSince: isoDate.nullish(),
+        changedSince: isoDate().nullish(),
         nameContains: z.string().min(1).nullish(),
         statusNameContains: z.string().min(1).nullish(),
         isClosed: z.boolean().nullish(),

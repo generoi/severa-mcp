@@ -13,8 +13,8 @@ const READ_ANNOTATIONS = {
   openWorldHint: true,
 };
 
-const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
-const uuid = z.string().uuid();
+const isoDate = () => z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+const uuid = () => z.string().uuid();
 
 export function registerProposalTools(server: McpServer, env: Env) {
   server.registerTool(
@@ -35,11 +35,11 @@ export function registerProposalTools(server: McpServer, env: Env) {
         "Resolve status GUIDs via `severa_query({ path: '/v1/proposalstatuses' })`. `limit` default 100, max 500.",
       ].join("\n"),
       inputSchema: {
-        changedSince: isoDate.nullish(),
-        customerGuid: uuid.nullish(),
-        projectGuid: uuid.nullish(),
-        salesPersonGuid: uuid.nullish(),
-        proposalStatusGuid: uuid.nullish(),
+        changedSince: isoDate().nullish(),
+        customerGuid: uuid().nullish(),
+        projectGuid: uuid().nullish(),
+        salesPersonGuid: uuid().nullish(),
+        proposalStatusGuid: uuid().nullish(),
         nameContains: z.string().min(1).nullish(),
         statusNameContains: z.string().min(1).nullish(),
         limit: z.number().int().min(1).max(500).nullish(),

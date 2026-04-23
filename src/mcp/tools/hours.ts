@@ -102,8 +102,8 @@ export function registerHoursReadTools(server: McpServer, env: Env, props: Sessi
   );
 }
 
-const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
-const uuid = z.string().uuid();
+const isoDate = () => z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+const uuid = () => z.string().uuid();
 
 export function registerHoursListTools(server: McpServer, env: Env) {
   server.registerTool(
@@ -125,16 +125,16 @@ export function registerHoursListTools(server: McpServer, env: Env) {
         "`limit` default 100, max 500.",
       ].join("\n"),
       inputSchema: {
-        eventDateStart: isoDate.nullish(),
-        eventDateEnd: isoDate.nullish(),
+        eventDateStart: isoDate().nullish(),
+        eventDateEnd: isoDate().nullish(),
         billableStatus: z.enum(["Billable", "NotBillable", "RemovedFromInvoice"]).nullish(),
-        businessUnitGuid: uuid.nullish(),
+        businessUnitGuid: uuid().nullish(),
         isApproved: z.boolean().nullish(),
-        changedSince: isoDate.nullish(),
-        userGuid: uuid.nullish(),
-        projectGuid: uuid.nullish(),
-        phaseGuid: uuid.nullish(),
-        workTypeGuid: uuid.nullish(),
+        changedSince: isoDate().nullish(),
+        userGuid: uuid().nullish(),
+        projectGuid: uuid().nullish(),
+        phaseGuid: uuid().nullish(),
+        workTypeGuid: uuid().nullish(),
         limit: z.number().int().min(1).max(500).nullish(),
       },
       annotations: { ...READ_ANNOTATIONS, title: "List work hours" },
@@ -189,12 +189,12 @@ export function registerHoursListTools(server: McpServer, env: Env) {
         "For user-scoped queries, prefer `severa_query({ path: '/v1/users/{userGuid}/timeentries' })`.",
       ].join("\n"),
       inputSchema: {
-        phaseGuid: uuid.nullish(),
-        timeEntryTypeGuid: uuid.nullish(),
-        changedSince: isoDate.nullish(),
-        userGuid: uuid.nullish(),
-        eventDateStart: isoDate.nullish(),
-        eventDateEnd: isoDate.nullish(),
+        phaseGuid: uuid().nullish(),
+        timeEntryTypeGuid: uuid().nullish(),
+        changedSince: isoDate().nullish(),
+        userGuid: uuid().nullish(),
+        eventDateStart: isoDate().nullish(),
+        eventDateEnd: isoDate().nullish(),
         limit: z.number().int().min(1).max(500).nullish(),
       },
       annotations: { ...READ_ANNOTATIONS, title: "List time entries" },
@@ -245,12 +245,12 @@ export function registerHoursListTools(server: McpServer, env: Env) {
         "For single-user queries, prefer `severa_query({ path: '/v1/users/{userGuid}/workdays' })`.",
       ].join("\n"),
       inputSchema: {
-        startDate: isoDate.nullish(),
-        endDate: isoDate.nullish(),
-        userGuid: uuid.nullish(),
-        userGuids: z.array(uuid).nullish(),
+        startDate: isoDate().nullish(),
+        endDate: isoDate().nullish(),
+        userGuid: uuid().nullish(),
+        userGuids: z.array(uuid()).nullish(),
         isCompleted: z.boolean().nullish(),
-        changedSince: isoDate.nullish(),
+        changedSince: isoDate().nullish(),
         limit: z.number().int().min(1).max(500).nullish(),
       },
       annotations: { ...READ_ANNOTATIONS, title: "List workdays" },

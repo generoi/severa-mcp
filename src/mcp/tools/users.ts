@@ -13,8 +13,8 @@ const READ_ANNOTATIONS = {
   openWorldHint: true,
 };
 
-const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
-const uuid = z.string().uuid();
+const isoDate = () => z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+const uuid = () => z.string().uuid();
 
 export function registerUserTools(server: McpServer, env: Env) {
   server.registerTool(
@@ -40,13 +40,13 @@ export function registerUserTools(server: McpServer, env: Env) {
       ].join("\n"),
       inputSchema: {
         isActive: z.boolean().nullish(),
-        businessUnitGuids: z.array(uuid).nullish(),
-        keywordGuids: z.array(uuid).nullish(),
-        supervisorUserGuids: z.array(uuid).nullish(),
+        businessUnitGuids: z.array(uuid()).nullish(),
+        keywordGuids: z.array(uuid()).nullish(),
+        supervisorUserGuids: z.array(uuid()).nullish(),
         code: z.string().nullish(),
         email: z.string().email().nullish(),
         purpose: z.string().nullish(),
-        changedSince: isoDate.nullish(),
+        changedSince: isoDate().nullish(),
         nameContains: z.string().min(1).nullish(),
         emailContains: z.string().min(1).nullish(),
         limit: z.number().int().min(1).max(500).nullish(),

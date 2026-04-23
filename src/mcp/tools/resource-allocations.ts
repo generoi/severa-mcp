@@ -15,8 +15,8 @@ const READ_ANNOTATIONS = {
   openWorldHint: true,
 };
 
-const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
-const uuid = z.string().uuid();
+const isoDate = () => z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+const uuid = () => z.string().uuid();
 
 export function registerResourceAllocationTools(server: McpServer, env: Env) {
   server.registerTool(
@@ -39,12 +39,12 @@ export function registerResourceAllocationTools(server: McpServer, env: Env) {
         "`limit` default 100, max 500.",
       ].join("\n"),
       inputSchema: {
-        changedSince: isoDate.nullish(),
-        projectGuid: uuid.nullish(),
-        phaseGuid: uuid.nullish(),
-        userGuid: uuid.nullish(),
-        startFrom: isoDate.nullish(),
-        startTo: isoDate.nullish(),
+        changedSince: isoDate().nullish(),
+        projectGuid: uuid().nullish(),
+        phaseGuid: uuid().nullish(),
+        userGuid: uuid().nullish(),
+        startFrom: isoDate().nullish(),
+        startTo: isoDate().nullish(),
         limit: z.number().int().min(1).max(500).nullish(),
       },
       annotations: { ...READ_ANNOTATIONS, title: "List resource allocations" },
@@ -103,12 +103,12 @@ export function registerResourceAllocationTools(server: McpServer, env: Env) {
         "`limit` default 100, max 500.",
       ].join("\n"),
       inputSchema: {
-        startDate: isoDate.nullish(),
-        endDate: isoDate.nullish(),
+        startDate: isoDate().nullish(),
+        endDate: isoDate().nullish(),
         useSalesProbability: z.boolean().nullish(),
-        roleGuids: z.array(uuid).nullish(),
-        phaseGuids: z.array(uuid).nullish(),
-        projectGuids: z.array(uuid).nullish(),
+        roleGuids: z.array(uuid()).nullish(),
+        phaseGuids: z.array(uuid()).nullish(),
+        projectGuids: z.array(uuid()).nullish(),
         projectNameContains: z.string().min(1).nullish(),
         limit: z.number().int().min(1).max(500).nullish(),
       },

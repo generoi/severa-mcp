@@ -13,7 +13,7 @@ const READ_ANNOTATIONS = {
   openWorldHint: true,
 };
 
-const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+const isoDate = () => z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 
 export function registerProductTools(server: McpServer, env: Env) {
   server.registerTool(
@@ -38,7 +38,7 @@ export function registerProductTools(server: McpServer, env: Env) {
         type: z.string().nullish(),
         isActive: z.boolean().nullish(),
         code: z.string().nullish(),
-        changedSince: isoDate.nullish(),
+        changedSince: isoDate().nullish(),
         nameContains: z.string().min(1).nullish(),
         categoryGuid: z.string().uuid().nullish(),
         limit: z.number().int().min(1).max(500).nullish(),

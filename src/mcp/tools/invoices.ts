@@ -16,8 +16,8 @@ const READ_ANNOTATIONS = {
   openWorldHint: true,
 };
 
-const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
-const uuid = z.string().uuid();
+const isoDate = () => z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+const uuid = () => z.string().uuid();
 
 export function registerInvoiceTools(server: McpServer, env: Env) {
   server.registerTool(
@@ -42,25 +42,25 @@ export function registerInvoiceTools(server: McpServer, env: Env) {
         "`limit` default 100, max 500. Returns name, customer, status, total, date, GUID.",
       ].join("\n"),
       inputSchema: {
-        customerGuid: uuid.nullish(),
-        customerGuids: z.array(uuid).nullish(),
-        projectGuid: uuid.nullish(),
-        projectGuids: z.array(uuid).nullish(),
-        projectOwnerGuids: z.array(uuid).nullish(),
-        projectBusinessUnitGuids: z.array(uuid).nullish(),
-        salesPersonGuid: uuid.nullish(),
-        salesPersonGuids: z.array(uuid).nullish(),
-        createdByUserGuids: z.array(uuid).nullish(),
-        invoiceStatusGuid: uuid.nullish(),
-        invoiceStatusGuids: z.array(uuid).nullish(),
-        startDate: isoDate.nullish(),
-        endDate: isoDate.nullish(),
-        paymentDateStart: isoDate.nullish(),
+        customerGuid: uuid().nullish(),
+        customerGuids: z.array(uuid()).nullish(),
+        projectGuid: uuid().nullish(),
+        projectGuids: z.array(uuid()).nullish(),
+        projectOwnerGuids: z.array(uuid()).nullish(),
+        projectBusinessUnitGuids: z.array(uuid()).nullish(),
+        salesPersonGuid: uuid().nullish(),
+        salesPersonGuids: z.array(uuid()).nullish(),
+        createdByUserGuids: z.array(uuid()).nullish(),
+        invoiceStatusGuid: uuid().nullish(),
+        invoiceStatusGuids: z.array(uuid()).nullish(),
+        startDate: isoDate().nullish(),
+        endDate: isoDate().nullish(),
+        paymentDateStart: isoDate().nullish(),
         minimumTotalExcludingTax: z.number().nullish(),
         maximumTotalExcludingTax: z.number().nullish(),
         referenceNumbers: z.array(z.string()).nullish(),
         numbers: z.array(z.number().int()).nullish(),
-        changedSince: isoDate.nullish(),
+        changedSince: isoDate().nullish(),
         customerNameContains: z.string().min(1).nullish(),
         statusNameContains: z.string().min(1).nullish(),
         limit: z.number().int().min(1).max(500).nullish(),
@@ -139,8 +139,8 @@ export function registerInvoiceTools(server: McpServer, env: Env) {
         "`limit` default 100, max 500.",
       ].join("\n"),
       inputSchema: {
-        changedSince: isoDate.nullish(),
-        invoiceGuid: uuid.nullish(),
+        changedSince: isoDate().nullish(),
+        invoiceGuid: uuid().nullish(),
         descriptionContains: z.string().min(1).nullish(),
         limit: z.number().int().min(1).max(500).nullish(),
       },

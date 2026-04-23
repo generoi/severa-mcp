@@ -16,8 +16,8 @@ const READ_ANNOTATIONS = {
   openWorldHint: true,
 };
 
-const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
-const uuid = z.string().uuid();
+const isoDate = () => z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+const uuid = () => z.string().uuid();
 
 export function registerTravelTools(server: McpServer, env: Env) {
   server.registerTool(
@@ -39,13 +39,13 @@ export function registerTravelTools(server: McpServer, env: Env) {
         "`limit` default 100, max 500.",
       ].join("\n"),
       inputSchema: {
-        changedSince: isoDate.nullish(),
-        projectGuid: uuid.nullish(),
-        userGuid: uuid.nullish(),
-        travelExpenseTypeGuid: uuid.nullish(),
+        changedSince: isoDate().nullish(),
+        projectGuid: uuid().nullish(),
+        userGuid: uuid().nullish(),
+        travelExpenseTypeGuid: uuid().nullish(),
         descriptionContains: z.string().min(1).nullish(),
-        eventDateFrom: isoDate.nullish(),
-        eventDateTo: isoDate.nullish(),
+        eventDateFrom: isoDate().nullish(),
+        eventDateTo: isoDate().nullish(),
         billableStatus: z
           .enum(["Billable", "NotBillable", "RemovedFromInvoice"])
           .nullish(),
@@ -117,12 +117,12 @@ export function registerTravelTools(server: McpServer, env: Env) {
         "`limit` default 100, max 500.",
       ].join("\n"),
       inputSchema: {
-        travelReimbursementStatusGuids: z.array(uuid).nullish(),
-        changedSince: isoDate.nullish(),
-        userGuid: uuid.nullish(),
+        travelReimbursementStatusGuids: z.array(uuid()).nullish(),
+        changedSince: isoDate().nullish(),
+        userGuid: uuid().nullish(),
         statusNameContains: z.string().min(1).nullish(),
-        startFrom: isoDate.nullish(),
-        startTo: isoDate.nullish(),
+        startFrom: isoDate().nullish(),
+        startTo: isoDate().nullish(),
         limit: z.number().int().min(1).max(500).nullish(),
       },
       annotations: { ...READ_ANNOTATIONS, title: "List travel reimbursements" },
