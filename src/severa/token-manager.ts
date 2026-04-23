@@ -32,6 +32,7 @@ const READ_SCOPES = [
   "hours:read",
   "invoices:read",
   "activities:read",
+  "settings:read",
 ];
 
 const WRITE_SCOPES = ["hours:write"];

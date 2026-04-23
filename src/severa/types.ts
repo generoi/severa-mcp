@@ -56,6 +56,7 @@ export interface ProjectOutputModel {
   phases?: PhaseSubModel[];
   isInternal?: boolean;
   isClosed?: boolean;
+  closedDate?: string;
   currency?: { guid: Guid; code: string };
 }
 

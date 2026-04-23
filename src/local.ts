@@ -10,6 +10,7 @@ import { registerLookupTools } from "./mcp/tools/lookup.js";
 import { registerHoursTools } from "./mcp/tools/hours.js";
 import { registerCaseTools } from "./mcp/tools/cases.js";
 import { registerBillingForecastTools } from "./mcp/tools/billing-forecast.js";
+import { registerQueryTools } from "./mcp/tools/query.js";
 import type { Env } from "./env.js";
 import type { SessionProps } from "./auth/session.js";
 
@@ -22,7 +23,13 @@ function loadDevVars(): Record<string, string> {
         .filter((l) => l.includes("="))
         .map((l) => {
           const eq = l.indexOf("=");
-          return [l.slice(0, eq).trim(), l.slice(eq + 1).trim().replace(/^"|"$/g, "")];
+          const raw = l.slice(eq + 1).trim();
+          const unquoted =
+            (raw.startsWith('"') && raw.endsWith('"')) ||
+            (raw.startsWith("'") && raw.endsWith("'"))
+              ? raw.slice(1, -1)
+              : raw;
+          return [l.slice(0, eq).trim(), unquoted];
         }),
     );
   } catch {
@@ -73,6 +80,7 @@ const env = {
   SEVERA_API_BASE_STAG:
     vars.SEVERA_API_BASE_STAG ?? "https://api.severa.stag.visma.com/rest-api",
   SEVERA_API_BASE_PROD: vars.SEVERA_API_BASE_PROD ?? "https://api.severa.visma.com/rest-api",
+  SEVERA_EMAIL_MAP: vars.SEVERA_EMAIL_MAP ?? "",
   ENABLE_WRITE_TOOLS: vars.ENABLE_WRITE_TOOLS ?? "false",
   GOOGLE_OAUTH_CLIENT_ID: "",
   GOOGLE_OAUTH_CLIENT_SECRET: "",
@@ -87,10 +95,11 @@ const props: SessionProps = {
 };
 
 const server = new McpServer({ name: "severa-mcp", version: "0.1.0" });
-registerLookupTools(server, env);
+registerLookupTools(server, env, props);
 registerCaseTools(server, env, props);
 registerBillingForecastTools(server, env);
 registerHoursTools(server, env, props, { enableWrites: env.ENABLE_WRITE_TOOLS === "true" });
+registerQueryTools(server, env);
 
 const transport = new StdioServerTransport();
 await server.connect(transport);

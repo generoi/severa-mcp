@@ -20,35 +20,106 @@ const READ_ANNOTATIONS = {
 
 export function registerCaseTools(server: McpServer, env: Env, props: SessionProps) {
   server.registerTool(
-    "severa_find_case",
+    "severa_list_sales_cases",
     {
-      description:
-        "Find open sales cases whose name or customer contains the given text. A 'case' in Severa is a project in its sales phase.",
+      description: [
+        "List sales cases (projects in a sales phase) from `/v1/salescases`, with every filter the endpoint supports plus a few client-side ones.",
+        "",
+        "IMPORTANT: at some Severa setups (including Genero), once a case reaches a Won status like 'Order / NB' it is listed under `/v1/projects` and NOT here. For Won/sold questions, use `severa_list_projects` instead.",
+        "",
+        "Server-side filters (sent to Severa):",
+        "- `isClosed` — true = only closed (Won/Lost), false = only open, omit = both",
+        "- `customerGuid` — resolve via `severa_find_customer`",
+        "- `salesPersonGuid` — resolve via `severa_find_user`",
+        "- `onlyMine` — shortcut for salesPersonGuid = signed-in user",
+        "- `salesStatusTypeGuids` — resolve via `severa_query({ path: '/v1/salesstatustypes', query: { salesState: 'Won' } })` (or 'Lost' / 'InProgress')",
+        "",
+        "Client-side filters (applied after fetch) — usually let you skip the GUID lookup entirely:",
+        "- `isWon` — filter by `salesStatus.isWon`",
+        "- `nameContains` — substring of case name, customer name, or case number (so you often don't need `customerGuid`)",
+        "- `statusNameContains` — substring of sales-status name (e.g. 'NB' for New Business variants, 'EB' for Existing Business)",
+        "- `closedFrom` / `closedTo` — inclusive YYYY-MM-DD range on `closedDate`",
+        "",
+        "Use `limit` to cap results (default 100, max 500). Returns a formatted list with name, customer, status, probability, value, expected order / closed date, and GUID.",
+      ].join("\n"),
       inputSchema: {
-        text: z.string().min(1),
+        isClosed: z.boolean().optional(),
+        isWon: z.boolean().optional(),
         customerGuid: z.string().uuid().optional(),
-        limit: z.number().int().min(1).max(50).optional(),
+        salesPersonGuid: z.string().uuid().optional(),
+        onlyMine: z.boolean().optional(),
+        salesStatusTypeGuids: z.array(z.string().uuid()).optional(),
+        nameContains: z.string().min(1).optional(),
+        statusNameContains: z.string().min(1).optional(),
+        closedFrom: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .optional(),
+        closedTo: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .optional(),
+        limit: z.number().int().min(1).max(500).optional(),
       },
-      annotations: { ...READ_ANNOTATIONS, title: "Find sales case" },
+      annotations: { ...READ_ANNOTATIONS, title: "List sales cases" },
     },
-    async ({ text, customerGuid, limit = 15 }) => {
+    async ({
+      isClosed,
+      isWon,
+      customerGuid,
+      salesPersonGuid,
+      onlyMine,
+      salesStatusTypeGuids,
+      nameContains,
+      statusNameContains,
+      closedFrom,
+      closedTo,
+      limit = 100,
+    }) => {
+      const effectiveSalesPerson =
+        salesPersonGuid ??
+        (onlyMine ? await requireSeveraUserGuid(env, props.email) : undefined);
+
       const cases = await severaPaginate<ProjectOutputModel>(env, "/v1/salescases", {
         query: {
-          isClosed: false,
+          ...(isClosed !== undefined ? { isClosed } : {}),
           ...(customerGuid ? { customerGuids: [customerGuid] } : {}),
-          rowCount: 500,
+          ...(effectiveSalesPerson ? { salesPersonGuids: [effectiveSalesPerson] } : {}),
+          ...(salesStatusTypeGuids?.length ? { salesStatusTypeGuids } : {}),
+          rowCount: Math.min(1000, Math.max(limit, 100)),
         },
       });
+
       const hits = cases
-        .filter(
-          (c) =>
-            matches(c.name, text) ||
-            matches(c.customer?.name, text) ||
-            matches(c.number, text),
-        )
+        .filter((c) => {
+          if (isWon !== undefined && c.salesStatus?.isWon !== isWon) return false;
+          if (nameContains) {
+            const match =
+              matches(c.name, nameContains) ||
+              matches(c.customer?.name, nameContains) ||
+              matches(c.number, nameContains);
+            if (!match) return false;
+          }
+          if (statusNameContains && !matches(c.salesStatus?.name, statusNameContains)) {
+            return false;
+          }
+          if (closedFrom || closedTo) {
+            const closed = c.closedDate?.slice(0, 10);
+            if (!closed) return false;
+            if (closedFrom && closed < closedFrom) return false;
+            if (closedTo && closed > closedTo) return false;
+          }
+          return true;
+        })
         .slice(0, limit);
-      if (!hits.length) return toText(`No open sales cases matching "${text}".`);
-      return toText(`Found ${hits.length} case(s):\n${hits.map(renderCaseRow).join("\n")}`);
+
+      if (!hits.length) return toText("No sales cases match those filters.");
+      const totalRaw = hits.reduce((s, c) => s + (c.expectedValue?.amount ?? 0), 0);
+      const currency =
+        hits.find((c) => c.expectedValue?.currencyCode)?.expectedValue?.currencyCode ?? "EUR";
+      return toText(
+        `${hits.length} case(s)${hits.length < cases.length ? ` (of ${cases.length} fetched)` : ""} — total ${totalRaw.toLocaleString("sv-FI")} ${currency}:\n${hits.map(renderCaseRow).join("\n")}`,
+      );
     },
   );
 
@@ -62,32 +133,6 @@ export function registerCaseTools(server: McpServer, env: Env, props: SessionPro
     async ({ caseGuid }) => {
       const project = await severaFetch<ProjectOutputModel>(env, `/v1/projects/${caseGuid}`);
       return toJsonBlock(`Case: ${project.name}`, project);
-    },
-  );
-
-  server.registerTool(
-    "severa_list_my_cases",
-    {
-      description: "List open sales cases where the signed-in user is the sales person.",
-      inputSchema: {
-        includeClosed: z.boolean().optional(),
-        limit: z.number().int().min(1).max(200).optional(),
-      },
-      annotations: { ...READ_ANNOTATIONS, title: "List my sales cases" },
-    },
-    async ({ includeClosed = false, limit = 100 }) => {
-      const userGuid = await requireSeveraUserGuid(env, props.email);
-      const cases = await severaPaginate<ProjectOutputModel>(env, "/v1/salescases", {
-        query: {
-          salesPersonGuids: [userGuid],
-          ...(includeClosed ? {} : { isClosed: false }),
-          rowCount: limit,
-        },
-      });
-      if (!cases.length) return toText(`No sales cases for ${props.email}.`);
-      return toText(
-        `${cases.length} case(s) for ${props.email}:\n${cases.map(renderCaseRow).join("\n")}`,
-      );
     },
   );
 
@@ -146,6 +191,7 @@ export function registerCaseTools(server: McpServer, env: Env, props: SessionPro
       );
     },
   );
+
 }
 
 function renderCaseRow(c: ProjectOutputModel): string {
