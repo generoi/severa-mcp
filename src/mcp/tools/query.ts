@@ -62,14 +62,22 @@ export function registerQueryTools(server: McpServer, env: Env) {
       const shouldPaginate = paginate ?? true;
       const max = maxRows ?? 500;
       const opts = query ? { query } : {};
+
+      // Debug echo — list the query-param keys the server actually received,
+      // so the LLM can see immediately if the transport stripped one (e.g.
+      // claude.ai has been observed to silently lose date strings on some
+      // tool calls).
+      const receivedKeys = query ? Object.keys(query).sort() : [];
+      const debug = `\n\n[server received: path=${path}, query-keys=[${receivedKeys.join(", ")}], paginate=${shouldPaginate}, maxRows=${max}]`;
+
       if (shouldPaginate) {
         const data = await severaPaginate<unknown>(env, path, opts, max);
         const truncated = data.length >= max;
-        const title = `${path} — ${data.length} row(s)${truncated ? " (truncated; increase maxRows to see more)" : ""}`;
+        const title = `${path} — ${data.length} row(s)${truncated ? " (truncated; increase maxRows to see more)" : ""}${debug}`;
         return toJsonBlock(title, data);
       }
       const data = await severaFetch<unknown>(env, path, opts);
-      return toJsonBlock(path, data);
+      return toJsonBlock(`${path}${debug}`, data);
     },
   );
 }
