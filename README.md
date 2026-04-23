@@ -76,6 +76,21 @@ npx @modelcontextprotocol/inspector http://localhost:8787/sse
 
 It'll open a browser, send you through the Google sign-in, and then let you call every tool from a UI.
 
+## Tests
+
+Three layers — **run all three before claiming a non-trivial fix works**. Unit tests have previously passed on behaviour that diverged from the real API; the deeper layers exist because of those misses.
+
+```bash
+npm test                  # unit + schema, mocked fetch, ~5s
+npm run test:integration  # real Severa API + real stdio MCP, ~10s, needs .dev.vars
+./eval/run.sh             # Claude Code runs prompts against the stdio server (LLM-in-the-loop)
+```
+
+- **Unit / schema** (`npm test`) — tool handlers, pagination, null-tolerance (`test/null-tolerance.test.ts`), MCP registration (`test/mcp-registration.test.ts`), and JSON-Schema `$ref` avoidance (`test/schema-no-refs.test.ts` — claude.ai's client silently drops values on `$ref`-unions).
+- **Integration / e2e** (`npm run test:integration`) — spawns `src/local.ts` under a real stdio MCP client, runs live queries against Severa; auto-skips if `.dev.vars` lacks `SEVERA_CLIENT_ID`. Catches OAuth scope gaps, query-param drift, registration differences between worker and stdio entry points.
+- **LLM eval** (`./eval/run.sh`) — runs prompts through `claude -p` against the stdio MCP server and asserts at least one expected tool got invoked. Catches vague tool descriptions, Claude picking the wrong tool, or schema shapes that the real claude.ai transport mishandles. Filter by case name: `./eval/run.sh pipeline`. Ad-hoc: `PROMPT="..." EXPECT="severa_*" ./eval/run.sh -`. Requires an active Claude Code login.
+- **For schema / transport changes specifically**: after deploy, verify on claude.ai too — its MCP client has historically handled JSON-Schema shapes differently from the SDK's `InMemoryTransport` (that's the bug `schema-no-refs.test.ts` guards against).
+
 ## Deploy
 
 ```bash
@@ -136,5 +151,4 @@ Multi-user by construction: every user does their own OAuth dance, each session 
 ## Status / known TODOs
 
 - **Endpoints verified against the real OpenAPI spec** (`/psapublicrest/openapidocs/v1.0/doc.json`). `projectforecasts`, `salescases`, `/v1/users/{guid}/workhours`, `/v1/projects/{guid}/workhours`, `workType` on POST, `NextPageToken` response header — all matching current code.
-- **Tests**: vitest + `@cloudflare/vitest-pool-workers` scaffolded — no tests written yet; first target is the Severa client (token refresh, pagination via response header, 429 retries).
 - **Custom domain**: deploy under `severa-mcp.genero.fi` once staging passes.

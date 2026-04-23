@@ -13,6 +13,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:integration": "vitest run --config vitest.integration.config.ts",
+    "eval": "./eval/run.sh",
     "cf-typegen": "wrangler types"
   },
   "dependencies": {
