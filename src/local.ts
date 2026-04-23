@@ -50,10 +50,9 @@ function makeMemoryKV() {
       return type === "json" ? JSON.parse(entry.value) : entry.value;
     },
     async put(key: string, value: string, opts?: { expirationTtl?: number }) {
-      store.set(key, {
-        value,
-        expires: opts?.expirationTtl ? Date.now() + opts.expirationTtl * 1000 : undefined,
-      });
+      const entry: { value: string; expires?: number } = { value };
+      if (opts?.expirationTtl) entry.expires = Date.now() + opts.expirationTtl * 1000;
+      store.set(key, entry);
     },
     async delete(key: string) {
       store.delete(key);
@@ -90,7 +89,7 @@ const env = {
 
 const props: SessionProps = {
   email,
-  name: email.split("@")[0],
+  name: email.split("@")[0] ?? email,
   googleSub: "local",
 };
 

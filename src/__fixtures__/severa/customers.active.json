@@ -1,0 +1,26 @@
+[
+  {
+    "guid": "11111111-1111-1111-1111-111111111111",
+    "name": "Acme Oy",
+    "code": "ACME",
+    "number": "1001",
+    "isActive": true,
+    "vatNumber": "FI12345678"
+  },
+  {
+    "guid": "22222222-2222-2222-2222-222222222222",
+    "name": "Beta Industries",
+    "code": "BETA",
+    "number": "1002",
+    "isActive": true,
+    "vatNumber": null
+  },
+  {
+    "guid": "33333333-3333-3333-3333-333333333333",
+    "name": "Gamma Ltd",
+    "code": "GAMMA",
+    "number": "1003",
+    "isActive": true,
+    "vatNumber": "FI99999999"
+  }
+]

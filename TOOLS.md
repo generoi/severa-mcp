@@ -81,6 +81,36 @@ The tool description for `severa_query` already lists the main ones.
 5. **Registration** — add the tool to both `src/mcp/server.ts` (Cloudflare Workers, OAuth flow) and `src/local.ts` (stdio, `.dev.vars`).
 6. **Types** — any new Severa response shape lives in `src/severa/types.ts` with optional fields matching the OpenAPI spec.
 
+## Testing
+
+Every tool ships with fixture-based tests. The pattern:
+
+1. **Fixture JSON** under `src/__fixtures__/severa/<slug>.json` — sanitized response shapes (deterministic GUIDs like `11111111-…`, fake company/user names).
+2. **Mock `fetch`** via `src/test/harness.ts`'s `mockSeveraFetch({ routes })` — routes match on path + optional query-param predicate. The harness also auto-serves `/v1/token` with a valid 1h stub.
+3. **Call the tool** via `callTool(name, args, [registerFn])` — spins up an `McpServer`, registers the tool set, invokes the tool through an MCP client over `InMemoryTransport`, returns the text content.
+4. **Assert** on both the formatted output (happy path, filters applied) and the actual HTTP call shape (server-side query params are being constructed correctly).
+
+See `src/mcp/tools/lookup.test.ts` for a reference layout. Each tool PR should cover:
+- happy path (non-empty result, totals correct)
+- empty result path (no-match message)
+- at least one client-side filter narrows the output
+- at least one server-side query param is asserted to appear in the URL
+
+### MCP-level registration tests
+
+`test/mcp-registration.test.ts` asserts:
+- the full set of tools advertised to clients matches an explicit list (catches accidentally-removed tools that still appear in docs / CI elsewhere)
+- every tool has a ≥40-char description (catches copy-paste errors)
+- no duplicate tool names
+
+Update the expected-tool list in that file whenever a tool is added, removed, or renamed.
+
+### Commands
+
+- `npm test` — fast fixture + registry tests (< 2s, runs in CI)
+- `npm run test:watch` — watch mode while iterating on a tool
+- `npm run test:integration` — live Severa smoke test using `.dev.vars` (not in CI)
+
 ## Scopes
 
 The token currently requests `customers:read projects:read users:read hours:read invoices:read activities:read settings:read` (plus `hours:write` if `ENABLE_WRITE_TOOLS=true`). To add proposals or other new resources, add the matching `*:read` scope to `READ_SCOPES` in `src/severa/token-manager.ts` and confirm the API client has it granted in Severa admin.
