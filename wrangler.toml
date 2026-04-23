@@ -33,7 +33,6 @@ SEVERA_API_BASE_STAG = "https://api.severa.stag.visma.com/rest-api"
 SEVERA_API_BASE_PROD = "https://api.severa.visma.com/rest-api"
 GOOGLE_HOSTED_DOMAIN = "genero.fi"
 ENABLE_WRITE_TOOLS = "false"
-SEVERA_EMAIL_MAP = '{}'
 
 [env.staging]
 name = "severa-mcp-staging"
@@ -57,7 +56,6 @@ SEVERA_API_BASE_STAG = "https://api.severa.stag.visma.com/rest-api"
 SEVERA_API_BASE_PROD = "https://api.severa.visma.com/rest-api"
 GOOGLE_HOSTED_DOMAIN = "genero.fi"
 ENABLE_WRITE_TOOLS = "false"
-SEVERA_EMAIL_MAP = '{}'
 
 [env.production]
 name = "severa-mcp"
@@ -81,7 +79,6 @@ SEVERA_API_BASE_STAG = "https://api.severa.stag.visma.com/rest-api"
 SEVERA_API_BASE_PROD = "https://api.severa.visma.com/rest-api"
 GOOGLE_HOSTED_DOMAIN = "genero.fi"
 ENABLE_WRITE_TOOLS = "false"
-SEVERA_EMAIL_MAP = '{}'
 
 # Secrets (set via `wrangler secret put ... --env staging|production`):
 #   SEVERA_CLIENT_ID
@@ -89,3 +86,4 @@ SEVERA_EMAIL_MAP = '{}'
 #   GOOGLE_OAUTH_CLIENT_ID
 #   GOOGLE_OAUTH_CLIENT_SECRET
 #   COOKIE_ENCRYPTION_KEY
+#   SEVERA_EMAIL_MAP  - JSON map of login email → Severa email, e.g. '{"you@co.com":"you@co.com"}'
