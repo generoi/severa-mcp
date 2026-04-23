@@ -1,0 +1,11 @@
+[
+  {
+    "guid": "77aa77aa-77aa-77aa-77aa-77aa77aa77a1",
+    "role": { "guid": "88aa88aa-88aa-88aa-88aa-88aa88aa88a1", "name": "Senior Developer" },
+    "project": { "guid": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1", "name": "Acme - Website renewal" },
+    "startDate": "2026-05-01",
+    "endDate": "2026-06-30",
+    "hoursAllocated": 120,
+    "salesProbability": 100
+  }
+]

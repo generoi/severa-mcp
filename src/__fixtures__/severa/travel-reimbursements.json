@@ -1,0 +1,12 @@
+[
+  {
+    "guid": "ccddccdd-ccdd-ccdd-ccdd-ccddccddccd1",
+    "user": { "guid": "cccccccc-cccc-cccc-cccc-cccccccccccc", "firstName": "Tiia", "lastName": "Tester" },
+    "status": { "guid": "dd11dd11-dd11-dd11-dd11-dd11dd11dd11", "name": "Submitted" },
+    "startDate": "2026-04-10",
+    "endDate": "2026-04-12",
+    "destination": "Stockholm",
+    "purpose": "Client workshop",
+    "totalAmount": { "amount": 420, "currencyCode": "EUR" }
+  }
+]

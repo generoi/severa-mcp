@@ -3,7 +3,11 @@ import { z } from "zod";
 import { severaFetch, severaPaginate } from "../../severa/client";
 import { requireSeveraUserGuid } from "../../severa/user-resolver";
 import { helsinkiToday, helsinkiWeekRange } from "../../severa/dates";
-import type { WorkHourOutputModel } from "../../severa/types";
+import type {
+  TimeEntryModel,
+  WorkHourOutputModel,
+  WorkdayOutputModel,
+} from "../../severa/types";
 import type { Env } from "../../env";
 import type { SessionProps } from "../../auth/session";
 import { toText } from "../format";
@@ -98,6 +102,225 @@ export function registerHoursReadTools(server: McpServer, env: Env, props: Sessi
   );
 }
 
+const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+const uuid = z.string().uuid();
+
+export function registerHoursListTools(server: McpServer, env: Env) {
+  server.registerTool(
+    "severa_list_work_hours",
+    {
+      description: [
+        "List work-hour entries from `/v1/workhours` (global). Prefer the scoped `severa_get_my_hours` / `severa_get_unbilled_hours` when a single user or project is in scope — they're richer. This tool is for business-unit / date-range / billable-status queries that cross projects.",
+        "",
+        "Server-side filters (thin — pair with date range to avoid pagination ceiling):",
+        "- `eventDateStart` / `eventDateEnd` — YYYY-MM-DD",
+        "- `billableStatus` — `Billable` | `NotBillable` | `RemovedFromInvoice`",
+        "- `businessUnitGuid` — single-value",
+        "- `isApproved`",
+        "- `changedSince` — YYYY-MM-DD",
+        "",
+        "Client-side filters:",
+        "- `userGuid`, `projectGuid`, `phaseGuid`, `workTypeGuid`",
+        "",
+        "`limit` default 100, max 500.",
+      ].join("\n"),
+      inputSchema: {
+        eventDateStart: isoDate.optional(),
+        eventDateEnd: isoDate.optional(),
+        billableStatus: z.enum(["Billable", "NotBillable", "RemovedFromInvoice"]).optional(),
+        businessUnitGuid: uuid.optional(),
+        isApproved: z.boolean().optional(),
+        changedSince: isoDate.optional(),
+        userGuid: uuid.optional(),
+        projectGuid: uuid.optional(),
+        phaseGuid: uuid.optional(),
+        workTypeGuid: uuid.optional(),
+        limit: z.number().int().min(1).max(500).optional(),
+      },
+      annotations: { ...READ_ANNOTATIONS, title: "List work hours" },
+    },
+    async (args) => {
+      const limit = args.limit ?? 100;
+      const rows = await severaPaginate<WorkHourOutputModel>(env, "/v1/workhours", {
+        query: {
+          ...(args.eventDateStart ? { eventDateStart: args.eventDateStart } : {}),
+          ...(args.eventDateEnd ? { eventDateEnd: args.eventDateEnd } : {}),
+          ...(args.billableStatus ? { billableStatus: args.billableStatus } : {}),
+          ...(args.businessUnitGuid ? { businessUnitGuid: args.businessUnitGuid } : {}),
+          ...(args.isApproved !== undefined ? { isApproved: args.isApproved } : {}),
+          ...(args.changedSince ? { changedSince: `${args.changedSince}T00:00:00Z` } : {}),
+          rowCount: Math.min(1000, Math.max(limit, 100)),
+        },
+      });
+
+      const hits = rows
+        .filter((r) => {
+          if (args.userGuid && r.user?.guid !== args.userGuid) return false;
+          if (args.projectGuid && r.project?.guid !== args.projectGuid) return false;
+          if (args.phaseGuid && r.phase?.guid !== args.phaseGuid) return false;
+          if (args.workTypeGuid && r.workType?.guid !== args.workTypeGuid) return false;
+          return true;
+        })
+        .slice(0, limit);
+
+      if (!hits.length) return toText("No work-hour entries match those filters.");
+      const totalHours = hits.reduce((s, r) => s + (r.quantity ?? 0), 0);
+      return toText(
+        `${hits.length} entr${hits.length === 1 ? "y" : "ies"}${hits.length < rows.length ? ` (of ${rows.length} fetched)` : ""} — total ${totalHours.toFixed(2)}h:\n${hits.map(renderWorkHourRow).join("\n")}`,
+      );
+    },
+  );
+
+  server.registerTool(
+    "severa_list_time_entries",
+    {
+      description: [
+        "List time-entry records from `/v1/timeentries` (punch-clock style, distinct from billable work hours).",
+        "",
+        "Server-side filters:",
+        "- `phaseGuid`",
+        "- `timeEntryTypeGuid` — via `severa_query({ path: '/v1/timeentrytypes' })`",
+        "- `changedSince` — YYYY-MM-DD",
+        "",
+        "Client-side filters:",
+        "- `userGuid` — post-fetch",
+        "- `eventDateStart` / `eventDateEnd` — YYYY-MM-DD on `eventDate`",
+        "",
+        "For user-scoped queries, prefer `severa_query({ path: '/v1/users/{userGuid}/timeentries' })`.",
+      ].join("\n"),
+      inputSchema: {
+        phaseGuid: uuid.optional(),
+        timeEntryTypeGuid: uuid.optional(),
+        changedSince: isoDate.optional(),
+        userGuid: uuid.optional(),
+        eventDateStart: isoDate.optional(),
+        eventDateEnd: isoDate.optional(),
+        limit: z.number().int().min(1).max(500).optional(),
+      },
+      annotations: { ...READ_ANNOTATIONS, title: "List time entries" },
+    },
+    async (args) => {
+      const limit = args.limit ?? 100;
+      const rows = await severaPaginate<TimeEntryModel>(env, "/v1/timeentries", {
+        query: {
+          ...(args.phaseGuid ? { phaseGuid: args.phaseGuid } : {}),
+          ...(args.timeEntryTypeGuid ? { timeEntryTypeGuid: args.timeEntryTypeGuid } : {}),
+          ...(args.changedSince ? { changedSince: `${args.changedSince}T00:00:00Z` } : {}),
+          rowCount: Math.min(1000, Math.max(limit, 100)),
+        },
+      });
+
+      const hits = rows
+        .filter((r) => {
+          if (args.userGuid && r.user?.guid !== args.userGuid) return false;
+          if (args.eventDateStart || args.eventDateEnd) {
+            const d = r.eventDate?.slice(0, 10);
+            if (!d) return false;
+            if (args.eventDateStart && d < args.eventDateStart) return false;
+            if (args.eventDateEnd && d > args.eventDateEnd) return false;
+          }
+          return true;
+        })
+        .slice(0, limit);
+
+      if (!hits.length) return toText("No time entries match those filters.");
+      return toText(
+        `${hits.length} entr${hits.length === 1 ? "y" : "ies"}${hits.length < rows.length ? ` (of ${rows.length} fetched)` : ""}:\n${hits.map(renderTimeEntryRow).join("\n")}`,
+      );
+    },
+  );
+
+  server.registerTool(
+    "severa_list_workdays",
+    {
+      description: [
+        "List workday records from `/v1/workdays` (attendance / day-level summaries).",
+        "",
+        "Server-side filters:",
+        "- `startDate`, `endDate` — YYYY-MM-DD",
+        "- `userGuid` / `userGuids`",
+        "- `isCompleted`",
+        "- `changedSince` — YYYY-MM-DD",
+        "",
+        "For single-user queries, prefer `severa_query({ path: '/v1/users/{userGuid}/workdays' })`.",
+      ].join("\n"),
+      inputSchema: {
+        startDate: isoDate.optional(),
+        endDate: isoDate.optional(),
+        userGuid: uuid.optional(),
+        userGuids: z.array(uuid).optional(),
+        isCompleted: z.boolean().optional(),
+        changedSince: isoDate.optional(),
+        limit: z.number().int().min(1).max(500).optional(),
+      },
+      annotations: { ...READ_ANNOTATIONS, title: "List workdays" },
+    },
+    async (args) => {
+      const limit = args.limit ?? 100;
+      const userGuids = [
+        ...(args.userGuid ? [args.userGuid] : []),
+        ...(args.userGuids ?? []),
+      ];
+      const rows = await severaPaginate<WorkdayOutputModel>(env, "/v1/workdays", {
+        query: {
+          ...(args.startDate ? { startDate: args.startDate } : {}),
+          ...(args.endDate ? { endDate: args.endDate } : {}),
+          ...(userGuids.length ? { userGuids } : {}),
+          ...(args.isCompleted !== undefined ? { isCompleted: args.isCompleted } : {}),
+          ...(args.changedSince ? { changedSince: `${args.changedSince}T00:00:00Z` } : {}),
+          rowCount: Math.min(1000, Math.max(limit, 100)),
+        },
+      });
+
+      if (!rows.length) return toText("No workdays match those filters.");
+      const hits = rows.slice(0, limit);
+      const totalHours = hits.reduce((s, r) => s + (r.workHours ?? 0), 0);
+      return toText(
+        `${hits.length} workday(s)${hits.length < rows.length ? ` (of ${rows.length} fetched)` : ""} — total ${totalHours.toFixed(2)}h:\n${hits.map(renderWorkdayRow).join("\n")}`,
+      );
+    },
+  );
+}
+
+function renderWorkHourRow(r: WorkHourOutputModel): string {
+  const who = [r.user?.firstName, r.user?.lastName].filter(Boolean).join(" ") || r.user?.userName || "?";
+  const parts = [
+    r.eventDate?.slice(0, 10),
+    `${r.quantity}h`,
+    who,
+    r.project?.name,
+    r.phase?.name,
+    r.workType?.name,
+    r.billableStatus,
+  ].filter(Boolean);
+  return `- ${parts.join(" — ")} — \`${r.guid}\``;
+}
+
+function renderTimeEntryRow(r: TimeEntryModel): string {
+  const who = [r.user?.firstName, r.user?.lastName].filter(Boolean).join(" ") || "?";
+  const parts = [
+    r.eventDate?.slice(0, 10),
+    r.quantity !== undefined ? `${r.quantity}h` : undefined,
+    r.timeEntryType?.name,
+    who,
+    r.project?.name,
+    r.phase?.name,
+    r.description,
+  ].filter(Boolean);
+  return `- ${parts.join(" — ")} — \`${r.guid}\``;
+}
+
+function renderWorkdayRow(r: WorkdayOutputModel): string {
+  const who = [r.user?.firstName, r.user?.lastName].filter(Boolean).join(" ") || "?";
+  const parts = [
+    r.eventDate?.slice(0, 10),
+    who,
+    r.workHours !== undefined ? `${r.workHours}h` : undefined,
+    r.isCompleted === false ? "(not completed)" : undefined,
+  ].filter(Boolean);
+  return `- ${parts.join(" — ")} — \`${r.guid}\``;
+}
+
 export function registerHoursWriteTools(server: McpServer, env: Env, props: SessionProps) {
   server.registerTool(
     "severa_log_hours",
@@ -147,5 +370,6 @@ export function registerHoursTools(
   opts: { enableWrites: boolean },
 ) {
   registerHoursReadTools(server, env, props);
+  registerHoursListTools(server, env);
   if (opts.enableWrites) registerHoursWriteTools(server, env, props);
 }

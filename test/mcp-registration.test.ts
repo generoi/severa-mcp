@@ -16,6 +16,9 @@ import { registerUserTools } from "../src/mcp/tools/users";
 import { registerContactTools } from "../src/mcp/tools/contacts";
 import { registerProductTools } from "../src/mcp/tools/products";
 import { registerPhaseTools } from "../src/mcp/tools/phases";
+import { registerResourceAllocationTools } from "../src/mcp/tools/resource-allocations";
+import { registerFeeTools } from "../src/mcp/tools/fees";
+import { registerTravelTools } from "../src/mcp/tools/travels";
 import { registerQueryTools } from "../src/mcp/tools/query";
 
 const registerAll = [
@@ -31,6 +34,9 @@ const registerAll = [
   registerContactTools,
   registerProductTools,
   registerPhaseTools,
+  registerResourceAllocationTools,
+  registerFeeTools,
+  registerTravelTools,
   registerQueryTools,
 ];
 
@@ -52,10 +58,18 @@ const EXPECTED_TOOLS = [
   "severa_list_invoices",
   "severa_list_phases",
   "severa_list_products",
+  "severa_list_project_fees",
+  "severa_list_project_travel_expenses",
   "severa_list_projects",
   "severa_list_proposals",
+  "severa_list_resource_allocations",
+  "severa_list_role_allocations",
   "severa_list_sales_cases",
+  "severa_list_time_entries",
+  "severa_list_travel_reimbursements",
   "severa_list_users",
+  "severa_list_work_hours",
+  "severa_list_workdays",
   "severa_pipeline_summary",
   "severa_projects_missing_billing_forecast",
   "severa_query",
@@ -102,6 +116,9 @@ describe("MCP tool registry (writes enabled)", () => {
       registerContactTools,
       registerProductTools,
       registerPhaseTools,
+      registerResourceAllocationTools,
+      registerFeeTools,
+      registerTravelTools,
       registerQueryTools,
     ];
     const tools = await listTools(withWrites);

@@ -1,0 +1,11 @@
+[
+  {
+    "guid": "66aa66aa-66aa-66aa-66aa-66aa66aa66a1",
+    "user": { "guid": "cccccccc-cccc-cccc-cccc-cccccccccccc", "firstName": "Tiia", "lastName": "Tester" },
+    "project": { "guid": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1", "name": "Acme - Website renewal" },
+    "phase": { "guid": "80808080-8080-8080-8080-808080808081", "name": "Discovery" },
+    "startDate": "2026-04-01",
+    "endDate": "2026-04-30",
+    "hoursAllocated": 80
+  }
+]

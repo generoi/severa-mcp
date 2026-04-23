@@ -1,0 +1,14 @@
+[
+  {
+    "guid": "aaabbbaa-aaab-bbaa-aaab-bbaaaaaaaaa1",
+    "project": { "guid": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1", "name": "Acme - Website renewal" },
+    "user": { "guid": "cccccccc-cccc-cccc-cccc-cccccccccccc", "firstName": "Tiia", "lastName": "Tester" },
+    "travelExpenseType": { "guid": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1", "name": "Train" },
+    "eventDate": "2026-04-15",
+    "description": "Helsinki to Turku",
+    "quantity": 2,
+    "unit": "trips",
+    "totalPrice": { "amount": 86, "currencyCode": "EUR" },
+    "billableStatus": "Billable"
+  }
+]

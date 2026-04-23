@@ -1,0 +1,22 @@
+[
+  {
+    "guid": "11aa11aa-11aa-11aa-11aa-11aa11aa11a1",
+    "user": { "guid": "cccccccc-cccc-cccc-cccc-cccccccccccc", "firstName": "Tiia", "lastName": "Tester" },
+    "project": { "guid": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1", "name": "Acme - Website renewal" },
+    "phase": { "guid": "80808080-8080-8080-8080-808080808081", "name": "Discovery" },
+    "workType": { "guid": "22cc22cc-22cc-22cc-22cc-22cc22cc22c1", "name": "Project Management" },
+    "eventDate": "2026-04-10",
+    "quantity": 4,
+    "billableStatus": "Billable"
+  },
+  {
+    "guid": "11aa11aa-11aa-11aa-11aa-11aa11aa11a2",
+    "user": { "guid": "cccccccc-cccc-cccc-cccc-cccccccccccd", "firstName": "Sam", "lastName": "Sample" },
+    "project": { "guid": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2", "name": "Beta - Care contract 2026" },
+    "phase": { "guid": "80808080-8080-8080-8080-808080808091", "name": "Ongoing" },
+    "workType": { "guid": "22cc22cc-22cc-22cc-22cc-22cc22cc22c2", "name": "Design" },
+    "eventDate": "2026-04-12",
+    "quantity": 2.5,
+    "billableStatus": "Billable"
+  }
+]

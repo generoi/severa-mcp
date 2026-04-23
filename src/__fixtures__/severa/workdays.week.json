@@ -1,0 +1,16 @@
+[
+  {
+    "guid": "55aa55aa-55aa-55aa-55aa-55aa55aa55a1",
+    "user": { "guid": "cccccccc-cccc-cccc-cccc-cccccccccccc", "firstName": "Tiia", "lastName": "Tester" },
+    "eventDate": "2026-04-20",
+    "workHours": 7.5,
+    "isCompleted": true
+  },
+  {
+    "guid": "55aa55aa-55aa-55aa-55aa-55aa55aa55a2",
+    "user": { "guid": "cccccccc-cccc-cccc-cccc-cccccccccccc", "firstName": "Tiia", "lastName": "Tester" },
+    "eventDate": "2026-04-21",
+    "workHours": 8,
+    "isCompleted": true
+  }
+]

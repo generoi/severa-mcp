@@ -13,6 +13,9 @@ import { registerUserTools } from "./tools/users";
 import { registerContactTools } from "./tools/contacts";
 import { registerProductTools } from "./tools/products";
 import { registerPhaseTools } from "./tools/phases";
+import { registerResourceAllocationTools } from "./tools/resource-allocations";
+import { registerFeeTools } from "./tools/fees";
+import { registerTravelTools } from "./tools/travels";
 import { registerQueryTools } from "./tools/query";
 
 export class SeveraMcpAgent extends McpAgent<Env, Record<string, never>, SessionProps> {
@@ -31,6 +34,9 @@ export class SeveraMcpAgent extends McpAgent<Env, Record<string, never>, Session
     registerContactTools(this.server, this.env);
     registerProductTools(this.server, this.env);
     registerPhaseTools(this.server, this.env);
+    registerResourceAllocationTools(this.server, this.env);
+    registerFeeTools(this.server, this.env);
+    registerTravelTools(this.server, this.env);
     registerQueryTools(this.server, this.env);
   }
 }

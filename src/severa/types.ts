@@ -204,6 +204,94 @@ export interface ProductOutputModel {
   lastUpdatedDateTime?: string;
 }
 
+export interface TimeEntryModel {
+  guid: Guid;
+  user?: UserWithName;
+  timeEntryType?: { guid: Guid; name?: string };
+  phase?: PhaseSubModel;
+  project?: { guid: Guid; name: string };
+  eventDate?: string;
+  startTime?: string;
+  endTime?: string;
+  quantity?: number;
+  description?: string;
+}
+
+export interface WorkdayOutputModel {
+  guid: Guid;
+  user?: UserWithName;
+  eventDate?: string;
+  workHours?: number;
+  isCompleted?: boolean;
+  startTime?: string;
+  endTime?: string;
+  flextimeAdjustment?: number;
+  workHoursByType?: { workType?: { guid: Guid; name?: string }; quantity?: number }[];
+}
+
+export interface ResourceAllocationOutputModel {
+  guid: Guid;
+  project?: { guid: Guid; name: string };
+  phase?: PhaseSubModel;
+  user?: UserWithName;
+  startDate?: string;
+  endDate?: string;
+  allocationType?: string;
+  hoursAllocated?: number;
+  percentageAllocated?: number;
+  note?: string;
+}
+
+export interface RoleAllocationOutputModel {
+  guid: Guid;
+  role?: { guid: Guid; name?: string };
+  project?: { guid: Guid; name: string };
+  phase?: PhaseSubModel;
+  startDate?: string;
+  endDate?: string;
+  hoursAllocated?: number;
+  salesProbability?: number;
+}
+
+export interface ProjectFeeOutputModel {
+  guid: Guid;
+  project?: { guid: Guid; name: string };
+  user?: UserWithName;
+  eventDate?: string;
+  description?: string;
+  quantity?: number;
+  unitPrice?: Money;
+  totalPrice?: Money;
+  billableStatus?: "Billable" | "NotBillable" | "RemovedFromInvoice";
+  invoice?: { guid: Guid; number?: string | number } | null;
+}
+
+export interface ProjectTravelExpenseOutputModel {
+  guid: Guid;
+  project?: { guid: Guid; name: string };
+  user?: UserWithName;
+  travelExpenseType?: { guid: Guid; name?: string };
+  eventDate?: string;
+  description?: string;
+  quantity?: number;
+  unit?: string;
+  totalPrice?: Money;
+  billableStatus?: "Billable" | "NotBillable" | "RemovedFromInvoice";
+  invoice?: { guid: Guid; number?: string | number } | null;
+}
+
+export interface TravelReimbursementOutputModel {
+  guid: Guid;
+  user?: UserWithName;
+  status?: { guid: Guid; name?: string };
+  startDate?: string;
+  endDate?: string;
+  destination?: string;
+  purpose?: string;
+  totalAmount?: Money;
+  lastUpdatedDateTime?: string;
+}
+
 export interface PhaseOutputModel {
   guid: Guid;
   name?: string;

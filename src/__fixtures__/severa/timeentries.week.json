@@ -1,0 +1,13 @@
+[
+  {
+    "guid": "33aa33aa-33aa-33aa-33aa-33aa33aa33a1",
+    "user": { "guid": "cccccccc-cccc-cccc-cccc-cccccccccccc", "firstName": "Tiia", "lastName": "Tester" },
+    "timeEntryType": { "guid": "44aa44aa-44aa-44aa-44aa-44aa44aa44a1", "name": "Standard" },
+    "project": { "guid": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1", "name": "Acme - Website renewal" },
+    "eventDate": "2026-04-20",
+    "startTime": "09:00",
+    "endTime": "12:00",
+    "quantity": 3,
+    "description": "Focused time"
+  }
+]

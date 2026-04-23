@@ -1,0 +1,12 @@
+[
+  {
+    "guid": "99aa99aa-99aa-99aa-99aa-99aa99aa99a1",
+    "project": { "guid": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1", "name": "Acme - Website renewal" },
+    "user": { "guid": "cccccccc-cccc-cccc-cccc-cccccccccccc", "firstName": "Tiia", "lastName": "Tester" },
+    "eventDate": "2026-04-10",
+    "description": "Stock photo license",
+    "quantity": 1,
+    "totalPrice": { "amount": 150, "currencyCode": "EUR" },
+    "billableStatus": "Billable"
+  }
+]
