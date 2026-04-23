@@ -9,6 +9,7 @@ import { formatMoney, toJsonBlock, toText } from "../format";
 import {
   applyProjectClientFilters,
   buildProjectsServerQuery,
+  describeAppliedFilters,
   projectFiltersBase,
   resolveIsWonToStatusTypeGuids,
 } from "./_filters";
@@ -67,12 +68,25 @@ export function registerCaseTools(server: McpServer, env: Env, props: SessionPro
 
       const hits = applyProjectClientFilters(cases, args, { limit });
 
-      if (!hits.length) return toText("No sales cases match those filters.");
+      const describeOpts: { effectiveSalesPerson?: string; resolvedStatusTypeGuids?: string[] } = {};
+      if (queryOpts.effectiveSalesPerson) describeOpts.effectiveSalesPerson = queryOpts.effectiveSalesPerson;
+      if (resolvedGuids) describeOpts.resolvedStatusTypeGuids = resolvedGuids;
+      const filterSummary = describeAppliedFilters(args, describeOpts);
+      const truncated = cases.length >= 1000;
+
+      if (!hits.length) {
+        return toText(
+          `No sales cases match those filters.\n\nFilters applied:\n${filterSummary.map((l) => `- ${l}`).join("\n") || "- (none)"}`,
+        );
+      }
       const totalRaw = hits.reduce((s, c) => s + (c.expectedValue?.amount ?? 0), 0);
       const currency =
         hits.find((c) => c.expectedValue?.currencyCode)?.expectedValue?.currencyCode ?? "EUR";
+      const warning = truncated
+        ? `\n\n⚠ Fetched ${cases.length} rows (likely truncated — pair with a date filter like \`salesStatusChangedSince\` if you expected a narrower window). Filters applied:\n${filterSummary.map((l) => `- ${l}`).join("\n") || "- (none — result is unfiltered)"}`
+        : "";
       return toText(
-        `${hits.length} case(s)${hits.length < cases.length ? ` (of ${cases.length} fetched)` : ""} — total ${totalRaw.toLocaleString("sv-FI")} ${currency}:\n${hits.map(renderCaseRow).join("\n")}`,
+        `${hits.length} case(s)${hits.length < cases.length ? ` (of ${cases.length} fetched)` : ""} — total ${totalRaw.toLocaleString("sv-FI")} ${currency}:\n${hits.map(renderCaseRow).join("\n")}${warning}`,
       );
     },
   );

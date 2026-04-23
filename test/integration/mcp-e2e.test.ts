@@ -102,11 +102,44 @@ describe.skipIf(!hasCreds)("MCP stdio server (e2e)", () => {
     expect(text).toMatch(/\bguid\b|"guid"/);
   }, 30_000);
 
-  it("severa_list_projects with Won/NB + salesStatusChangedSince YTD returns a list (sold YTD at Genero)", async () => {
+  it("severa_list_projects with Won/NB + salesStatusChangedSince YTD ONLY returns YTD rows", async () => {
+    const year = new Date().getUTCFullYear();
+    const from = `${year}-01-01`;
     const result = await client.callTool({
       name: "severa_list_projects",
       arguments: {
         salesStatusTypeGuids: ["39f9432a-a141-fcab-9142-8045bf8ed54a"],
+        salesStatusChangedSince: from,
+        limit: 20,
+      },
+    });
+    expect(result.isError).not.toBe(true);
+    const blocks = (result.content ?? []) as { type: string; text?: string }[];
+    const text = blocks.map((b) => b.text ?? "").join("");
+    if (/No projects match/.test(text)) return;
+
+    // If rows came back, the date filter MUST have narrowed the window —
+    // every "order <date>" or "closed <date>" line in the output should
+    // either be >= YTD or correspond to sales-status-change, but we
+    // don't have visibility into salesStatusChangedDateTime on the row.
+    // The most faithful narrowing check: the truncation warning (">=1000
+    // fetched") must NOT fire. If it does, the date filter was ignored.
+    expect(text, "YTD filter appears ignored (>=1000 rows fetched)").not.toMatch(
+      /Fetched \d{4,} rows/,
+    );
+
+    // Every rendered row should be Order/NB (isWon → status-type
+    // resolution worked)
+    for (const line of text.split("\n").filter((l) => l.startsWith("- "))) {
+      expect(line, `row should be Order / NB: ${line}`).toMatch(/Order \/ NB/);
+    }
+  }, 30_000);
+
+  it("severa_list_projects isWon:true actually narrows to Won statuses (filter visibility check)", async () => {
+    const result = await client.callTool({
+      name: "severa_list_projects",
+      arguments: {
+        isWon: true,
         salesStatusChangedSince: `${new Date().getUTCFullYear()}-01-01`,
         limit: 5,
       },
@@ -114,9 +147,17 @@ describe.skipIf(!hasCreds)("MCP stdio server (e2e)", () => {
     expect(result.isError).not.toBe(true);
     const blocks = (result.content ?? []) as { type: string; text?: string }[];
     const text = blocks.map((b) => b.text ?? "").join("");
-    // We don't assert on specific customer names (data changes), but the
-    // formatted output has a predictable header
-    expect(text).toMatch(/project\(s\)|No projects match/);
+
+    if (/No projects match/.test(text)) return;
+
+    // Every rendered row must be a Won-state status (Order / *). Catches the
+    // regression where `isWon` was silently ignored client-side and the list
+    // contained InProgress statuses like "Proposal presentation / NB".
+    for (const line of text.split("\n").filter((l) => l.startsWith("- "))) {
+      expect(line, `row should be a Won status: ${line}`).toMatch(
+        /Order \/ (NB|EB|MRR|upsales)/,
+      );
+    }
   }, 30_000);
 
   it("severa://reference/sales-status-types resource read returns JSON with a Won entry", async () => {
@@ -162,6 +203,57 @@ describe.skipIf(!hasCreds)("MCP stdio server (e2e)", () => {
     });
     expect(result.isError).not.toBe(true);
   }, 30_000);
+
+  it("golden path: severa_query statuses → severa_list_projects → severa_get_case", async () => {
+    // Multi-step LLM-shape workflow: discover Won/NB GUID via reference
+    // endpoint, list projects filtered by it, then drill into one by GUID.
+    // Catches regressions in tool composition (the thing that actually
+    // drives LLM usage).
+
+    // Step 1: discover Won status types
+    const statuses = await client.callTool({
+      name: "severa_query",
+      arguments: { path: "/v1/salesstatustypes", query: { salesState: "Won" } },
+    });
+    expect(statuses.isError).not.toBe(true);
+    const statusText = ((statuses.content ?? []) as { type: string; text?: string }[])
+      .map((b) => b.text ?? "")
+      .join("");
+    const nbMatch = statusText.match(
+      /"guid":\s*"([0-9a-f-]{36})"[^}]+"name":\s*"Order \/ NB"/,
+    );
+    expect(nbMatch, "should find Order / NB status type via severa_query").toBeTruthy();
+    const nbGuid = nbMatch![1]!;
+
+    // Step 2: list projects with that status + YTD window
+    const projects = await client.callTool({
+      name: "severa_list_projects",
+      arguments: {
+        salesStatusTypeGuids: [nbGuid],
+        salesStatusChangedSince: `${new Date().getUTCFullYear()}-01-01`,
+        limit: 3,
+      },
+    });
+    expect(projects.isError).not.toBe(true);
+    const projectsText = ((projects.content ?? []) as { type: string; text?: string }[])
+      .map((b) => b.text ?? "")
+      .join("");
+
+    const firstGuid = projectsText.match(/`([0-9a-f-]{36})`/)?.[1];
+    if (!firstGuid) return; // no projects this year — acceptable
+
+    // Step 3: fetch that case's full detail by GUID
+    const detail = await client.callTool({
+      name: "severa_get_case",
+      arguments: { caseGuid: firstGuid },
+    });
+    expect(detail.isError).not.toBe(true);
+    const detailText = ((detail.content ?? []) as { type: string; text?: string }[])
+      .map((b) => b.text ?? "")
+      .join("");
+    expect(detailText).toMatch(/"guid":\s*"/);
+    expect(detailText).toContain(firstGuid);
+  }, 60_000);
 
   it("bogus tool call returns an error without killing the server", async () => {
     const result = await client.callTool({

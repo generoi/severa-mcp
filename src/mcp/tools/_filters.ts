@@ -148,6 +148,63 @@ export function buildProjectsServerQuery(
   return query;
 }
 
+// Summarize the filters the caller actually sent (so the LLM can see whether
+// a filter it intended survived the framework layer — e.g. claude.ai has
+// been observed to silently nullify ISO date strings).
+export function describeAppliedFilters(
+  args: ProjectFiltersBase & ProjectsExtraFilters,
+  extras: { effectiveSalesPerson?: string; resolvedStatusTypeGuids?: string[] } = {},
+): string[] {
+  const lines: string[] = [];
+  const gotGuid = (s?: string | null, arr?: string[] | null): string | null =>
+    s ? s : arr?.length ? `${arr.length} guid(s)` : null;
+
+  if (extras.effectiveSalesPerson) lines.push(`onlyMine → ${extras.effectiveSalesPerson}`);
+  if (extras.resolvedStatusTypeGuids?.length)
+    lines.push(
+      `isWon=${args.isWon ? "true" : "false"} → ${extras.resolvedStatusTypeGuids.length} status-type GUID(s)`,
+    );
+
+  const cust = gotGuid(args.customerGuid, args.customerGuids);
+  if (cust) lines.push(`customerGuids: ${cust}`);
+  const sp = gotGuid(args.salesPersonGuid, args.salesPersonGuids);
+  if (sp) lines.push(`salesPersonGuids: ${sp}`);
+  if (args.salesStatusTypeGuids?.length && !extras.resolvedStatusTypeGuids)
+    lines.push(`salesStatusTypeGuids: ${args.salesStatusTypeGuids.length} guid(s)`);
+  if (args.projectStatusTypeGuids?.length)
+    lines.push(`projectStatusTypeGuids: ${args.projectStatusTypeGuids.length} guid(s)`);
+  if (args.businessUnitGuids?.length)
+    lines.push(`businessUnitGuids: ${args.businessUnitGuids.length} guid(s)`);
+  if (args.isClosed != null) lines.push(`isClosed: ${args.isClosed}`);
+  if (args.isBillable != null) lines.push(`isBillable: ${args.isBillable}`);
+  if (args.internal != null) lines.push(`internal: ${args.internal}`);
+  if (args.hasRecurringFees != null) lines.push(`hasRecurringFees: ${args.hasRecurringFees}`);
+  if (args.minimumBillableAmount != null)
+    lines.push(`minimumBillableAmount: ${args.minimumBillableAmount}`);
+  if (args.changedSince) lines.push(`changedSince: ${args.changedSince}`);
+  if (args.salesStatusChangedSince)
+    lines.push(`salesStatusChangedSince: ${args.salesStatusChangedSince}`);
+  if (args.projectStatusChangedSince)
+    lines.push(`projectStatusChangedSince: ${args.projectStatusChangedSince}`);
+  if (args.invoiceableDate) lines.push(`invoiceableDate: ${args.invoiceableDate}`);
+  if (args.numbers?.length) lines.push(`numbers: ${args.numbers.length} value(s)`);
+
+  // client-side
+  if (args.nameContains) lines.push(`nameContains (client-side): "${args.nameContains}"`);
+  if (args.statusNameContains)
+    lines.push(`statusNameContains (client-side): "${args.statusNameContains}"`);
+  if (args.closedFrom || args.closedTo)
+    lines.push(
+      `closedFrom/To (client-side): ${args.closedFrom ?? "?"} → ${args.closedTo ?? "?"}`,
+    );
+  if (args.expectedOrderFrom || args.expectedOrderTo)
+    lines.push(
+      `expectedOrderFrom/To (client-side): ${args.expectedOrderFrom ?? "?"} → ${args.expectedOrderTo ?? "?"}`,
+    );
+
+  return lines;
+}
+
 // Resolve the isWon convenience flag into a set of salesStatusTypeGuids
 // to inject server-side. Severa's ProjectOutputModel.salesStatus does NOT
 // actually include the `isWon` field on list responses, so checking it
