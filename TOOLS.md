@@ -15,10 +15,28 @@ High-value **aggregation** tools (weighted pipeline totals, forecast gap analysi
 | Sales cases | `severa_list_sales_cases`, `severa_get_case`, `severa_pipeline_summary` |
 | Projects | `severa_list_projects`, `severa_find_project`, `severa_get_project` |
 | Customers | `severa_list_customers`, `severa_find_customer`, `severa_get_customer` |
-| Users | `severa_find_user` |
-| Work hours | `severa_get_my_hours`, `severa_get_unbilled_hours` (+ `severa_log_hours` if `ENABLE_WRITE_TOOLS=true`) |
+| Users | `severa_list_users`, `severa_find_user` |
+| Contacts | `severa_list_contact_persons` |
+| Invoices | `severa_list_invoices`, `severa_list_invoice_rows` |
+| Proposals | `severa_list_proposals` |
+| Activities (CRM) | `severa_list_activities` |
+| Products | `severa_list_products` |
+| Phases | `severa_list_phases` |
+| Work hours | `severa_list_work_hours`, `severa_list_time_entries`, `severa_list_workdays`, `severa_get_my_hours`, `severa_get_unbilled_hours` (+ `severa_log_hours` if `ENABLE_WRITE_TOOLS=true`) |
+| Resource allocations | `severa_list_resource_allocations`, `severa_list_role_allocations` |
+| Fees | `severa_list_project_fees` |
+| Travels | `severa_list_project_travel_expenses`, `severa_list_travel_reimbursements` |
 | Billing forecast | `severa_get_billing_forecast`, `severa_projects_missing_billing_forecast`, `severa_cases_missing_billing_forecast` |
 | Generic | `severa_query` |
+
+## MCP resources
+
+In addition to tools, the server exposes read-only context via MCP resources:
+
+- `severa://openapi.json` — full Severa v1 OpenAPI spec (cached 7 days). Use to discover endpoints and filters beyond the dedicated tools.
+- `severa://reference/{slug}` — small lookup tables (`sales-status-types`, `project-status-types`, `work-types`, `business-units`, `cost-centers`, `keywords`, `currencies`, etc. — 25 slugs). Cached 24 hours.
+- `severa://me` — the signed-in user's Severa profile.
+- `severa://org/summary` — `/v1/organizationdetails` + `/v1/organizationsettings` bundled.
 
 ## Important setup-specific note (Genero)
 
