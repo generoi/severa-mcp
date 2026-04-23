@@ -27,6 +27,8 @@ import { registerPhaseMemberTools } from "./mcp/tools/phase-members.js";
 import { registerRootPhaseTools } from "./mcp/tools/root-phases.js";
 import { registerContactCommunicationTools } from "./mcp/tools/contact-communications.js";
 import { registerFileTools } from "./mcp/tools/files.js";
+import { registerAccountingTools } from "./mcp/tools/accounting.js";
+import { registerCustomerSegmentTools } from "./mcp/tools/customer-segments.js";
 import { registerQueryTools } from "./mcp/tools/query.js";
 import { registerResources } from "./mcp/resources/index.js";
 import type { Env } from "./env.js";
@@ -133,6 +135,8 @@ registerPhaseMemberTools(server, env);
 registerRootPhaseTools(server, env);
 registerContactCommunicationTools(server, env);
 registerFileTools(server, env);
+registerAccountingTools(server, env);
+registerCustomerSegmentTools(server, env);
 registerQueryTools(server, env);
 registerResources(server, env, props);
 

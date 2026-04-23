@@ -25,6 +25,8 @@ import { registerPhaseMemberTools } from "../src/mcp/tools/phase-members";
 import { registerRootPhaseTools } from "../src/mcp/tools/root-phases";
 import { registerContactCommunicationTools } from "../src/mcp/tools/contact-communications";
 import { registerFileTools } from "../src/mcp/tools/files";
+import { registerAccountingTools } from "../src/mcp/tools/accounting";
+import { registerCustomerSegmentTools } from "../src/mcp/tools/customer-segments";
 import { registerQueryTools } from "../src/mcp/tools/query";
 
 const registerAll = [
@@ -50,6 +52,8 @@ const registerAll = [
   registerRootPhaseTools,
   registerContactCommunicationTools,
   registerFileTools,
+  registerAccountingTools,
+  registerCustomerSegmentTools,
   registerQueryTools,
 ];
 
@@ -70,10 +74,14 @@ const REQUIRED_ARGS: Record<string, Record<string, unknown>> = {
     scope: "project",
     parentGuid: "00000000-0000-0000-0000-000000000001",
   },
+  severa_list_accounts: { kind: "sales" },
+  severa_get_proposal_breakdown: {
+    proposalGuid: "00000000-0000-0000-0000-000000000001",
+  },
 };
 
 describe("Every tool's optional fields accept null (LLM-friendliness)", () => {
-  it("does not reject null on any optional arg", async () => {
+  it("does not reject null on any optional arg", { timeout: 15_000 }, async () => {
     // Mock fetch to return an empty array for any endpoint, and succeed
     // the token exchange. We don't care about the response shape — only
     // that schema validation on input doesn't reject null.
@@ -108,6 +116,16 @@ describe("Every tool's optional fields accept null (LLM-friendliness)", () => {
           "/v1/phasemembers",
           "/v1/rootphaseswithhierarchy",
           "/v1/contactcommunications",
+          "/v1/flatrates",
+          "/v1/projectrecurringfeerules",
+          "/v1/proposalworkrows",
+          "/v1/proposalfeerows",
+          "/v1/proposalsubtotals",
+          "/v1/bankaccounts",
+          "/v1/salesaccounts",
+          "/v1/costaccounts",
+          "/v1/kpiformulas",
+          "/v1/customermarketsegments",
         ].map((path) => ({ path, response: [] as unknown[] })),
       ],
     });

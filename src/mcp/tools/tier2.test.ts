@@ -221,7 +221,9 @@ describe("tier-2 tool registration", () => {
     expect(names).toEqual([
       "severa_get_my_hours",
       "severa_get_unbilled_hours",
+      "severa_list_flat_rates",
       "severa_list_project_fees",
+      "severa_list_project_recurring_fees",
       "severa_list_project_travel_expenses",
       "severa_list_resource_allocations",
       "severa_list_role_allocations",

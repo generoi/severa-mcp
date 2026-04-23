@@ -36,6 +36,8 @@ import { registerPhaseMemberTools } from "../src/mcp/tools/phase-members";
 import { registerRootPhaseTools } from "../src/mcp/tools/root-phases";
 import { registerContactCommunicationTools } from "../src/mcp/tools/contact-communications";
 import { registerFileTools } from "../src/mcp/tools/files";
+import { registerAccountingTools } from "../src/mcp/tools/accounting";
+import { registerCustomerSegmentTools } from "../src/mcp/tools/customer-segments";
 import { registerQueryTools } from "../src/mcp/tools/query";
 
 const registerAll = [
@@ -61,6 +63,8 @@ const registerAll = [
   registerRootPhaseTools,
   registerContactCommunicationTools,
   registerFileTools,
+  registerAccountingTools,
+  registerCustomerSegmentTools,
   registerQueryTools,
 ];
 

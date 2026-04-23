@@ -235,6 +235,7 @@ describe("tier-1 tool registration", () => {
       registerPhaseTools,
     ]);
     expect(tools.map((t) => t.name).sort()).toEqual([
+      "severa_get_proposal_breakdown",
       "severa_list_activities",
       "severa_list_contact_persons",
       "severa_list_phases",

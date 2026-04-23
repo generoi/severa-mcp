@@ -26,6 +26,8 @@ import { registerPhaseMemberTools } from "../src/mcp/tools/phase-members";
 import { registerRootPhaseTools } from "../src/mcp/tools/root-phases";
 import { registerContactCommunicationTools } from "../src/mcp/tools/contact-communications";
 import { registerFileTools } from "../src/mcp/tools/files";
+import { registerAccountingTools } from "../src/mcp/tools/accounting";
+import { registerCustomerSegmentTools } from "../src/mcp/tools/customer-segments";
 import { registerQueryTools } from "../src/mcp/tools/query";
 
 const registerAll = [
@@ -51,6 +53,8 @@ const registerAll = [
   registerRootPhaseTools,
   registerContactCommunicationTools,
   registerFileTools,
+  registerAccountingTools,
+  registerCustomerSegmentTools,
   registerQueryTools,
 ];
 
@@ -64,20 +68,27 @@ const EXPECTED_TOOLS = [
   "severa_get_customer",
   "severa_get_my_hours",
   "severa_get_project",
+  "severa_get_proposal_breakdown",
   "severa_get_unbilled_hours",
+  "severa_list_accounts",
   "severa_list_activities",
+  "severa_list_bank_accounts",
   "severa_list_contact_communications",
   "severa_list_contact_persons",
+  "severa_list_customer_market_segments",
   "severa_list_customers",
   "severa_list_files",
+  "severa_list_flat_rates",
   "severa_list_holidays",
   "severa_list_invoice_rows",
   "severa_list_invoices",
+  "severa_list_kpi_formulas",
   "severa_list_overtimes",
   "severa_list_phase_members",
   "severa_list_phases",
   "severa_list_products",
   "severa_list_project_fees",
+  "severa_list_project_recurring_fees",
   "severa_list_project_travel_expenses",
   "severa_list_projects",
   "severa_list_proposals",
@@ -147,6 +158,8 @@ describe("MCP tool registry (writes enabled)", () => {
       registerRootPhaseTools,
       registerContactCommunicationTools,
       registerFileTools,
+      registerAccountingTools,
+      registerCustomerSegmentTools,
       registerQueryTools,
     ];
     const tools = await listTools(withWrites);

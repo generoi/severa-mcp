@@ -313,6 +313,117 @@ export interface PhaseOutputModel {
   isClosed?: boolean;
 }
 
+export interface FlatRateOutputModel {
+  guid: Guid;
+  project?: { guid: Guid; name?: string };
+  phase?: { guid: Guid; name?: string };
+  invoiceGuid?: Guid;
+  billingSchedule?: string;
+  plannedBillingDate?: string;
+  price?: Money;
+  pricePerAdditionalHour?: Money;
+  includesHours?: number;
+  billAdditionalHours?: boolean;
+}
+
+export interface ProjectRecurringFeeRuleOutputModel {
+  guid: Guid;
+  name?: string;
+  description?: string;
+  project?: { guid: Guid; name?: string };
+  phase?: { guid: Guid; name?: string };
+  customer?: { guid: Guid; name?: string };
+  product?: { guid: Guid; name?: string };
+  productType?: string;
+  quantity?: number;
+  unitPrice?: Money;
+  unitCost?: Money;
+  frequency?: string;
+  recurrenceStartDate?: string;
+  recurrenceEndDate?: string;
+  recurrenceEndType?: string;
+  recurrenceTimes?: number;
+  generatedTimes?: number;
+  isActive?: boolean;
+}
+
+export interface ProposalFeeRowOutputModel {
+  guid: Guid;
+  name?: string;
+  description?: string;
+  proposal?: { guid: Guid };
+  product?: { guid: Guid; name?: string };
+  quantity?: number;
+  unitPrice?: Money;
+  unitCost?: Money;
+  subtotal?: Money;
+  measurementUnit?: string;
+  sortOrder?: number;
+  isShownOnProposal?: boolean;
+}
+
+export interface ProposalSubtotalOutputModel {
+  guid: Guid;
+  name?: string;
+  description?: string;
+  proposal?: { guid: Guid };
+  phase?: { guid: Guid; name?: string };
+  sortOrder?: number;
+  isShownOnProposal?: boolean;
+}
+
+export interface ProposalWorkhourRowOutputModel {
+  guid: Guid;
+  name?: string;
+  description?: string;
+  proposal?: { guid: Guid };
+  phase?: { guid: Guid; name?: string };
+  workType?: { guid: Guid; name?: string };
+  quantity?: number;
+  unitPrice?: Money;
+  unitCost?: Money;
+  subtotal?: Money;
+  sortOrder?: number;
+  isShownOnProposal?: boolean;
+}
+
+export interface BankAccountOutputModel {
+  guid: Guid;
+  accountNumber?: string;
+  accountNumberFormat?: string;
+  bankName?: string;
+  bic?: string;
+  company?: { guid: Guid; name?: string };
+  businessUnit?: { guid: Guid; name?: string };
+  isActive?: boolean;
+}
+
+export interface AccountModel {
+  guid: Guid;
+  name?: string;
+  number?: string;
+  isActive?: boolean;
+  isProductDefault?: boolean;
+  isTravelTypeDefault?: boolean;
+  isWorkTypeDefault?: boolean;
+}
+
+export interface KpiFormulaOutputModel {
+  guid: Guid;
+  name?: string;
+  category?: string;
+  dataType?: string;
+  unit?: string;
+  isActive?: boolean;
+}
+
+export interface CustomerMarketSegmentModel {
+  guid: Guid;
+  customer?: { guid: Guid; name?: string };
+  marketSegment?: { guid: Guid; name?: string };
+  parentMarketSegment?: { guid: Guid; name?: string };
+}
+
 export interface FileMetadataModel {
   guid: Guid;
   fileGuid?: Guid;

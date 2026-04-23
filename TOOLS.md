@@ -18,19 +18,21 @@ High-value **aggregation** tools (weighted pipeline totals, forecast gap analysi
 | Users | `severa_list_users`, `severa_find_user` |
 | Contacts | `severa_list_contact_persons` |
 | Invoices | `severa_list_invoices`, `severa_list_invoice_rows` |
-| Proposals | `severa_list_proposals` |
+| Proposals | `severa_list_proposals`, `severa_get_proposal_breakdown` |
 | Activities (CRM) | `severa_list_activities` |
 | Products | `severa_list_products` |
 | Phases | `severa_list_phases` |
 | Work hours | `severa_list_work_hours`, `severa_list_time_entries`, `severa_list_workdays`, `severa_get_my_hours`, `severa_get_unbilled_hours` (+ `severa_log_hours` if `ENABLE_WRITE_TOOLS=true`) |
 | Resource allocations | `severa_list_resource_allocations`, `severa_list_role_allocations` |
-| Fees | `severa_list_project_fees` |
+| Fees | `severa_list_project_fees`, `severa_list_flat_rates`, `severa_list_project_recurring_fees` |
 | Travels | `severa_list_project_travel_expenses`, `severa_list_travel_reimbursements` |
 | Billing forecast | `severa_get_billing_forecast`, `severa_projects_missing_billing_forecast`, `severa_cases_missing_billing_forecast` |
 | Reference data | `severa_list_overtimes`, `severa_list_holidays`, `severa_list_roles` |
 | Staffing | `severa_list_phase_members`, `severa_list_root_phases` |
 | Contact channels | `severa_list_contact_communications` |
 | Files (metadata only) | `severa_list_files` — content download deferred pending permission-model decision |
+| Accounting | `severa_list_bank_accounts`, `severa_list_accounts` (sales/cost), `severa_list_kpi_formulas` |
+| Customer segments | `severa_list_customer_market_segments` |
 | Generic | `severa_query` |
 
 ## MCP resources

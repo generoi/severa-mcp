@@ -2,7 +2,12 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { severaPaginate } from "../../severa/client";
 import { matches } from "../../severa/reference-cache";
-import type { ProposalOutputModel } from "../../severa/types";
+import type {
+  ProposalOutputModel,
+  ProposalFeeRowOutputModel,
+  ProposalSubtotalOutputModel,
+  ProposalWorkhourRowOutputModel,
+} from "../../severa/types";
 import type { Env } from "../../env";
 import { formatMoney, toText } from "../format";
 
@@ -78,6 +83,92 @@ export function registerProposalTools(server: McpServer, env: Env) {
       );
     },
   );
+
+  server.registerTool(
+    "severa_get_proposal_breakdown",
+    {
+      description: [
+        "Fetch the full line-item breakdown of a single proposal: work-hour rows, fee rows, and subtotals — pulled in parallel from `/v1/proposalworkrows`, `/v1/proposalfeerows`, and `/v1/proposalsubtotals`, then filtered client-side to the given proposal and rendered as three sections.",
+        "",
+        "Use this when someone asks 'what's in proposal X' or wants to audit line items before a won/lost decision. For proposal-level metadata only (status, probability, expected value), use `severa_list_proposals`.",
+        "",
+        "Arg:",
+        "- `proposalGuid` — the proposal to break down",
+        "",
+        "Note: these endpoints are thin server-side (only `changedSince`), so we fetch recent rows and filter. If a very old proposal has no recent activity its rows may not be returned; set `changedSince` on the underlying endpoints via `severa_query` if needed.",
+      ].join("\n"),
+      inputSchema: { proposalGuid: uuid() },
+      annotations: { ...READ_ANNOTATIONS, title: "Proposal breakdown" },
+    },
+    async ({ proposalGuid }) => {
+      const [workRows, feeRows, subtotals] = await Promise.all([
+        severaPaginate<ProposalWorkhourRowOutputModel>(env, "/v1/proposalworkrows", {
+          query: { rowCount: 1000 },
+        }),
+        severaPaginate<ProposalFeeRowOutputModel>(env, "/v1/proposalfeerows", {
+          query: { rowCount: 1000 },
+        }),
+        severaPaginate<ProposalSubtotalOutputModel>(env, "/v1/proposalsubtotals", {
+          query: { rowCount: 1000 },
+        }),
+      ]);
+      const w = workRows.filter((r) => r.proposal?.guid === proposalGuid);
+      const f = feeRows.filter((r) => r.proposal?.guid === proposalGuid);
+      const s = subtotals.filter((r) => r.proposal?.guid === proposalGuid);
+      if (!w.length && !f.length && !s.length) {
+        return toText(
+          `No rows found on proposal \`${proposalGuid}\`. If the proposal is old, try \`severa_query\` on each of /v1/proposalworkrows, /v1/proposalfeerows, /v1/proposalsubtotals without a changedSince filter.`,
+        );
+      }
+      const workTotal = w.reduce((acc, r) => acc + (r.subtotal?.amount ?? 0), 0);
+      const feeTotal = f.reduce((acc, r) => acc + (r.subtotal?.amount ?? 0), 0);
+      const currency =
+        w.find((r) => r.subtotal?.currencyCode)?.subtotal?.currencyCode ??
+        f.find((r) => r.subtotal?.currencyCode)?.subtotal?.currencyCode ??
+        "EUR";
+      const sections = [
+        `**Proposal \`${proposalGuid}\`** — work ${workTotal.toLocaleString("sv-FI")} ${currency} · fees ${feeTotal.toLocaleString("sv-FI")} ${currency} · ${(workTotal + feeTotal).toLocaleString("sv-FI")} ${currency} total`,
+        "",
+        `## Work-hour rows (${w.length})`,
+        ...w.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)).map(renderWorkRow),
+        "",
+        `## Fee rows (${f.length})`,
+        ...f.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)).map(renderFeeRow),
+        "",
+        `## Subtotals (${s.length})`,
+        ...s.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)).map(renderSubtotalRow),
+      ];
+      return toText(sections.join("\n"));
+    },
+  );
+}
+
+function renderWorkRow(r: ProposalWorkhourRowOutputModel): string {
+  const parts = [
+    r.name,
+    r.phase?.name,
+    r.workType?.name,
+    r.quantity != null ? `${r.quantity}h` : undefined,
+    formatMoney(r.unitPrice),
+    formatMoney(r.subtotal),
+  ].filter(Boolean);
+  return `- ${parts.join(" — ")}`;
+}
+
+function renderFeeRow(r: ProposalFeeRowOutputModel): string {
+  const parts = [
+    r.name,
+    r.product?.name,
+    r.quantity != null ? `${r.quantity}${r.measurementUnit ? ` ${r.measurementUnit}` : ""}` : undefined,
+    formatMoney(r.unitPrice),
+    formatMoney(r.subtotal),
+  ].filter(Boolean);
+  return `- ${parts.join(" — ")}`;
+}
+
+function renderSubtotalRow(s: ProposalSubtotalOutputModel): string {
+  const parts = [s.name, s.phase?.name, s.description].filter(Boolean);
+  return `- ${parts.join(" — ")}`;
 }
 
 function renderProposalRow(p: ProposalOutputModel): string {
