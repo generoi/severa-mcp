@@ -2,15 +2,11 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { mockSeveraFetch, withMcpServer } from "../../test/harness";
 import { registerResources } from "./index";
 
-async function listResources(): Promise<{ name?: string; uri?: string; uriTemplate?: string }[]> {
+async function listResources(): Promise<{ name: string; uri: string }[]> {
   const handle = await withMcpServer([registerResources]);
   try {
     const result = await handle.client.listResources();
-    return result.resources.map((r) => ({
-      name: r.name,
-      uri: r.uri,
-      uriTemplate: (r as { uriTemplate?: string }).uriTemplate,
-    }));
+    return result.resources.map((r) => ({ name: r.name, uri: r.uri }));
   } finally {
     await handle.close();
   }
@@ -21,7 +17,7 @@ async function readResource(uri: string): Promise<string> {
   try {
     const result = await handle.client.readResource({ uri });
     const text = result.contents
-      .map((c) => (typeof c.text === "string" ? c.text : ""))
+      .map((c) => ("text" in c && typeof c.text === "string" ? c.text : ""))
       .join("");
     return text;
   } finally {

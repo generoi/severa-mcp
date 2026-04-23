@@ -12,7 +12,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:integration": "vitest run --dir test/integration",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
     "cf-typegen": "wrangler types"
   },
   "dependencies": {

@@ -123,11 +123,24 @@ See `src/mcp/tools/lookup.test.ts` for a reference layout. Each tool PR should c
 
 Update the expected-tool list in that file whenever a tool is added, removed, or renamed.
 
+### End-to-end tests
+
+`test/integration/mcp-e2e.test.ts` spawns the actual stdio server (`npx tsx src/local.ts`) and drives it with a real MCP `Client` over `StdioClientTransport` + real Severa API. Covers the full stack: module loading, `.dev.vars` parsing, token exchange, tool + resource registration, JSON-RPC framing, error paths. Catches regressions that InMemoryTransport tests miss (e.g., wrong import paths, config parse failures, registration drift between `server.ts` and `local.ts`).
+
+Includes assertions that:
+- 30+ tools are advertised and every one has a ≥40-char description
+- All expected resources are listed (including the reference-template slugs)
+- `severa_query` against `/v1/salesstatustypes?salesState=Won` returns Won types (proves OAuth, scopes, pagination end-to-end)
+- `severa_list_projects` Won/NB YTD round-trips
+- `severa://reference/sales-status-types` reads valid JSON with a Won entry
+- `severa://me` reads the signed-in user's Severa profile
+- A bogus tool call returns `{isError: true}` without killing the server
+
 ### Commands
 
-- `npm test` — fast fixture + registry tests (< 2s, runs in CI)
+- `npm test` — fast fixture + registry tests (< 3s, runs in CI, ~60 tests)
 - `npm run test:watch` — watch mode while iterating on a tool
-- `npm run test:integration` — live Severa smoke test using `.dev.vars` (not in CI)
+- `npm run test:integration` — live Severa integration + e2e stdio tests using `.dev.vars` (not in CI; ~4s, 9 tests)
 
 ## Scopes
 
