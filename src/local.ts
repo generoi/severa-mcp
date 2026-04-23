@@ -21,6 +21,7 @@ import { registerResourceAllocationTools } from "./mcp/tools/resource-allocation
 import { registerFeeTools } from "./mcp/tools/fees.js";
 import { registerTravelTools } from "./mcp/tools/travels.js";
 import { registerQueryTools } from "./mcp/tools/query.js";
+import { registerResources } from "./mcp/resources/index.js";
 import type { Env } from "./env.js";
 import type { SessionProps } from "./auth/session.js";
 
@@ -119,6 +120,7 @@ registerResourceAllocationTools(server, env);
 registerFeeTools(server, env);
 registerTravelTools(server, env);
 registerQueryTools(server, env);
+registerResources(server, env, props);
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
