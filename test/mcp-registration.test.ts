@@ -28,6 +28,7 @@ import { registerContactCommunicationTools } from "../src/mcp/tools/contact-comm
 import { registerFileTools } from "../src/mcp/tools/files";
 import { registerAccountingTools } from "../src/mcp/tools/accounting";
 import { registerCustomerSegmentTools } from "../src/mcp/tools/customer-segments";
+import { registerProjectsWriteTools } from "../src/mcp/tools/projects-write";
 import { registerQueryTools } from "../src/mcp/tools/query";
 
 const registerAll = [
@@ -134,7 +135,7 @@ describe("MCP tool registry (read-only surface)", () => {
 });
 
 describe("MCP tool registry (writes enabled)", () => {
-  it("adds severa_log_hours when ENABLE_WRITE_TOOLS=true", async () => {
+  it("adds all hours:write tools when ENABLE_WRITE_TOOLS=true", async () => {
     const withWrites = [
       registerLookupTools,
       registerCaseTools,
@@ -160,9 +161,27 @@ describe("MCP tool registry (writes enabled)", () => {
       registerFileTools,
       registerAccountingTools,
       registerCustomerSegmentTools,
+      registerProjectsWriteTools,
       registerQueryTools,
     ];
     const tools = await listTools(withWrites);
-    expect(tools.map((t) => t.name)).toContain("severa_log_hours");
+    const names = tools.map((t) => t.name);
+    expect(names).toContain("severa_log_hours");
+    expect(names).toContain("severa_update_hours");
+    expect(names).toContain("severa_delete_hours");
+    expect(names).toContain("severa_close_workday");
+    expect(names).toContain("severa_create_project");
+    expect(names).toContain("severa_update_project");
+  });
+
+  it("does not register write tools when ENABLE_WRITE_TOOLS is off", async () => {
+    const tools = await listTools(registerAll);
+    const names = tools.map((t) => t.name);
+    expect(names).not.toContain("severa_log_hours");
+    expect(names).not.toContain("severa_update_hours");
+    expect(names).not.toContain("severa_delete_hours");
+    expect(names).not.toContain("severa_close_workday");
+    expect(names).not.toContain("severa_create_project");
+    expect(names).not.toContain("severa_update_project");
   });
 });

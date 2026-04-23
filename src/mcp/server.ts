@@ -25,6 +25,7 @@ import { registerContactCommunicationTools } from "./tools/contact-communication
 import { registerFileTools } from "./tools/files";
 import { registerAccountingTools } from "./tools/accounting";
 import { registerCustomerSegmentTools } from "./tools/customer-segments";
+import { registerProjectsWriteTools } from "./tools/projects-write";
 import { registerQueryTools } from "./tools/query";
 import { registerResources } from "./resources";
 
@@ -56,6 +57,7 @@ export class SeveraMcpAgent extends McpAgent<Env, Record<string, never>, Session
     registerFileTools(this.server, this.env);
     registerAccountingTools(this.server, this.env);
     registerCustomerSegmentTools(this.server, this.env);
+    if (enableWrites) registerProjectsWriteTools(this.server, this.env);
     registerQueryTools(this.server, this.env);
     registerResources(this.server, this.env, this.props);
   }

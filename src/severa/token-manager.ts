@@ -52,7 +52,7 @@ const READ_SCOPES = [
   "files:read",
 ];
 
-const WRITE_SCOPES = ["hours:write"];
+const WRITE_SCOPES = ["hours:write", "projects:write"];
 
 export function requestedScopes(env: TokenManagerEnv): string {
   const writeEnabled = env.ENABLE_WRITE_TOOLS === "true";

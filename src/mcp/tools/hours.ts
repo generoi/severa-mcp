@@ -325,8 +325,11 @@ export function registerHoursWriteTools(server: McpServer, env: Env, props: Sess
   server.registerTool(
     "severa_log_hours",
     {
-      description:
-        "Log a work-hour entry for the signed-in user. Requires a phaseGuid (phases belong to projects) and a workTypeGuid.",
+      description: [
+        "Log a work-hour entry for the signed-in user. Requires a `phaseGuid` (phases belong to projects — discover via `severa_list_phases`) and a `workTypeGuid` (discover via `severa_query({ path: '/v1/worktypes' })`).",
+        "",
+        "For personal time-off (vacation, sick day, etc.), use an absence-type `workTypeGuid` — Severa models absences as work-hour entries under absence work types, not as separate 'holiday' records.",
+      ].join("\n"),
       inputSchema: {
         phaseGuid: z.string().uuid(),
         workTypeGuid: z.string().uuid(),
@@ -358,6 +361,120 @@ export function registerHoursWriteTools(server: McpServer, env: Env, props: Sess
       });
       return toText(
         `Logged ${quantity}h on ${body.eventDate} to ${created.project?.name ?? "project"}. Entry GUID: \`${created.guid}\``,
+      );
+    },
+  );
+
+  server.registerTool(
+    "severa_update_hours",
+    {
+      description: [
+        "Update fields on an existing work-hour entry. Pass only the fields you want to change — they're packaged into a JSON Patch (RFC 6902) and sent to `/v1/workhours/{guid}`.",
+        "",
+        "Omitted fields are left untouched. Pass `description: \"\"` to clear a description; null is treated the same as omission.",
+      ].join("\n"),
+      inputSchema: {
+        hoursGuid: z.string().uuid(),
+        quantity: z.number().positive().max(24).nullish(),
+        eventDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullish(),
+        description: z.string().nullish(),
+        isBillable: z.boolean().nullish(),
+        startTime: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/).nullish(),
+        endTime: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/).nullish(),
+        phaseGuid: z.string().uuid().nullish(),
+        workTypeGuid: z.string().uuid().nullish(),
+      },
+      annotations: { ...WRITE_ANNOTATIONS, title: "Update work hours" },
+    },
+    async ({
+      hoursGuid,
+      quantity,
+      eventDate,
+      description,
+      isBillable,
+      startTime,
+      endTime,
+      phaseGuid,
+      workTypeGuid,
+    }) => {
+      const ops: Array<{ op: "replace"; path: string; value: unknown }> = [];
+      if (quantity != null) ops.push({ op: "replace", path: "/quantity", value: quantity });
+      if (eventDate != null) ops.push({ op: "replace", path: "/eventDate", value: eventDate });
+      if (description != null) ops.push({ op: "replace", path: "/description", value: description });
+      if (isBillable != null) ops.push({ op: "replace", path: "/isBillable", value: isBillable });
+      if (startTime != null) ops.push({ op: "replace", path: "/startTime", value: startTime });
+      if (endTime != null) ops.push({ op: "replace", path: "/endTime", value: endTime });
+      if (phaseGuid != null) ops.push({ op: "replace", path: "/phase/guid", value: phaseGuid });
+      if (workTypeGuid != null)
+        ops.push({ op: "replace", path: "/workType/guid", value: workTypeGuid });
+
+      if (!ops.length) return toText("No changes provided — specify at least one field to update.");
+
+      await severaFetch<unknown>(env, `/v1/workhours/${hoursGuid}`, {
+        method: "PATCH",
+        body: ops,
+      });
+      return toText(
+        `Updated ${ops.length} field(s) on \`${hoursGuid}\`: ${ops.map((o) => o.path.slice(1)).join(", ")}.`,
+      );
+    },
+  );
+
+  server.registerTool(
+    "severa_delete_hours",
+    {
+      description:
+        "Delete a work-hour entry by GUID (`DELETE /v1/workhours/{guid}`). Irreversible on the Severa side. Use only for entries that belong to the signed-in user — Severa enforces ownership, but surface it clearly in any confirmation prompt.",
+      inputSchema: { hoursGuid: z.string().uuid() },
+      annotations: {
+        ...WRITE_ANNOTATIONS,
+        destructiveHint: true,
+        title: "Delete work hours",
+      },
+    },
+    async ({ hoursGuid }) => {
+      await severaFetch<unknown>(env, `/v1/workhours/${hoursGuid}`, { method: "DELETE" });
+      return toText(`Deleted work-hour entry \`${hoursGuid}\`.`);
+    },
+  );
+
+  server.registerTool(
+    "severa_close_workday",
+    {
+      description: [
+        "Mark a workday as completed / submitted (or reopen it). PATCHes `/v1/users/{userGuid}/workdays/{date}` with `isCompleted`. Defaults to the signed-in user and today.",
+        "",
+        "Use this when a user has finished logging hours for a day and wants to mark the day as done (locks the day from further edits in some Severa configs).",
+      ].join("\n"),
+      inputSchema: {
+        date: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .nullish()
+          .describe("YYYY-MM-DD (Europe/Helsinki). Defaults to today."),
+        isCompleted: z.boolean().nullish().describe("Default true. Set false to reopen a closed day."),
+        userGuid: z
+          .string()
+          .uuid()
+          .nullish()
+          .describe("Defaults to the signed-in user."),
+      },
+      annotations: { ...WRITE_ANNOTATIONS, title: "Close workday" },
+    },
+    async ({ date, isCompleted, userGuid }) => {
+      const effectiveUser = userGuid ?? (await requireSeveraUserGuid(env, props.email));
+      const effectiveDate = date ?? helsinkiToday();
+      const completed = isCompleted ?? true;
+      await severaFetch<unknown>(
+        env,
+        `/v1/users/${effectiveUser}/workdays/${effectiveDate}`,
+        {
+          method: "PATCH",
+          body: [{ op: "replace", path: "/isCompleted", value: completed }],
+        },
+      );
+      return toText(
+        `${completed ? "Closed" : "Reopened"} workday ${effectiveDate} for user \`${effectiveUser}\`.`,
       );
     },
   );

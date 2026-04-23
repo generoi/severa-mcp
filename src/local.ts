@@ -29,6 +29,7 @@ import { registerContactCommunicationTools } from "./mcp/tools/contact-communica
 import { registerFileTools } from "./mcp/tools/files.js";
 import { registerAccountingTools } from "./mcp/tools/accounting.js";
 import { registerCustomerSegmentTools } from "./mcp/tools/customer-segments.js";
+import { registerProjectsWriteTools } from "./mcp/tools/projects-write.js";
 import { registerQueryTools } from "./mcp/tools/query.js";
 import { registerResources } from "./mcp/resources/index.js";
 import type { Env } from "./env.js";
@@ -137,6 +138,7 @@ registerContactCommunicationTools(server, env);
 registerFileTools(server, env);
 registerAccountingTools(server, env);
 registerCustomerSegmentTools(server, env);
+if (env.ENABLE_WRITE_TOOLS === "true") registerProjectsWriteTools(server, env);
 registerQueryTools(server, env);
 registerResources(server, env, props);
 

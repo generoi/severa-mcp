@@ -4,7 +4,13 @@ Remote MCP server that wraps the [Severa REST API](https://api.severa.visma.com/
 
 ## Tool surface
 
-All tools carry MCP tool annotations. **Writes are disabled by default** (`ENABLE_WRITE_TOOLS="false"`) — only the read-only set is registered, and the OAuth token the Worker requests from Severa has read-only scopes only. Flip `ENABLE_WRITE_TOOLS="true"` and add `hours:write` in Severa to enable `severa_log_hours`.
+All tools carry MCP tool annotations. **Writes are disabled by default** (`ENABLE_WRITE_TOOLS="false"`) — only the read-only set is registered, and the OAuth token the Worker requests from Severa has read-only scopes only. Flip `ENABLE_WRITE_TOOLS="true"` to register the write tools and request write scopes during OAuth.
+
+Before flipping the flag, a Genero admin must grant the corresponding scopes on the Severa API client — the code is ready; the scopes are not:
+- `hours:write` — enables `severa_log_hours`, `severa_update_hours`, `severa_delete_hours`, `severa_close_workday`
+- `projects:write` — enables `severa_create_project`, `severa_update_project` (both also work for sales cases, since a sales case is just a project with `salesStatus`)
+
+If only a subset of scopes is granted, Severa will either refuse the token or issue a partial token; tools whose scope is missing will 403 at call time.
 
 **Read-only (always on)**
 - `severa_find_customer`, `severa_find_project`, `severa_find_user`, `severa_get_project`, `severa_get_customer`
@@ -13,7 +19,8 @@ All tools carry MCP tool annotations. **Writes are disabled by default** (`ENABL
 - `severa_get_my_hours`, `severa_get_unbilled_hours`
 
 **Mutable (gated behind `ENABLE_WRITE_TOOLS=true`)**
-- `severa_log_hours`
+- Hours: `severa_log_hours`, `severa_update_hours`, `severa_delete_hours`, `severa_close_workday`
+- Projects / sales cases: `severa_create_project`, `severa_update_project`
 
 All "my" queries resolve the authenticated email → Severa user GUID automatically; callers do not pass user IDs.
 

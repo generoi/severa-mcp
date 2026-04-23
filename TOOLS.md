@@ -12,8 +12,8 @@ High-value **aggregation** tools (weighted pipeline totals, forecast gap analysi
 
 | Resource | Tools |
 |----------|-------|
-| Sales cases | `severa_list_sales_cases`, `severa_get_case`, `severa_pipeline_summary` |
-| Projects | `severa_list_projects`, `severa_find_project`, `severa_get_project` |
+| Sales cases | `severa_list_sales_cases`, `severa_get_case`, `severa_pipeline_summary` (+ `severa_create_project` / `severa_update_project` if `ENABLE_WRITE_TOOLS=true`) |
+| Projects | `severa_list_projects`, `severa_find_project`, `severa_get_project` (+ `severa_create_project` / `severa_update_project` if `ENABLE_WRITE_TOOLS=true`) |
 | Customers | `severa_list_customers`, `severa_find_customer`, `severa_get_customer` |
 | Users | `severa_list_users`, `severa_find_user` |
 | Contacts | `severa_list_contact_persons` |
@@ -22,7 +22,7 @@ High-value **aggregation** tools (weighted pipeline totals, forecast gap analysi
 | Activities (CRM) | `severa_list_activities` |
 | Products | `severa_list_products` |
 | Phases | `severa_list_phases` |
-| Work hours | `severa_list_work_hours`, `severa_list_time_entries`, `severa_list_workdays`, `severa_get_my_hours`, `severa_get_unbilled_hours` (+ `severa_log_hours` if `ENABLE_WRITE_TOOLS=true`) |
+| Work hours | `severa_list_work_hours`, `severa_list_time_entries`, `severa_list_workdays`, `severa_get_my_hours`, `severa_get_unbilled_hours` (+ write tools if `ENABLE_WRITE_TOOLS=true`: `severa_log_hours`, `severa_update_hours`, `severa_delete_hours`, `severa_close_workday`) |
 | Resource allocations | `severa_list_resource_allocations`, `severa_list_role_allocations` |
 | Fees | `severa_list_project_fees`, `severa_list_flat_rates`, `severa_list_project_recurring_fees` |
 | Travels | `severa_list_project_travel_expenses`, `severa_list_travel_reimbursements` |
