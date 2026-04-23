@@ -25,7 +25,18 @@ jobs:
 
       - run: npm ci
 
+      - name: Set SEVERA_EMAIL_MAP secret
+        run: |
+          if [ -n "$SEVERA_EMAIL_MAP" ]; then
+            printf '%s' "$SEVERA_EMAIL_MAP" | npx wrangler secret put SEVERA_EMAIL_MAP --env ${{ inputs.environment }}
+          fi
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          SEVERA_EMAIL_MAP: ${{ secrets.SEVERA_EMAIL_MAP }}
+
       - name: Deploy to ${{ inputs.environment }}
         run: npx wrangler deploy --env ${{ inputs.environment }}
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
