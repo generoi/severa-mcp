@@ -78,7 +78,7 @@ SEVERA_ENV = "prod"
 SEVERA_API_BASE_STAG = "https://api.severa.stag.visma.com/rest-api"
 SEVERA_API_BASE_PROD = "https://api.severa.visma.com/rest-api"
 GOOGLE_HOSTED_DOMAIN = "genero.fi"
-ENABLE_WRITE_TOOLS = "false"
+ENABLE_WRITE_TOOLS = "true"
 
 # Secrets (set via `wrangler secret put ... --env staging|production`):
 #   SEVERA_CLIENT_ID
